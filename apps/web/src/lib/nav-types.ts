@@ -1,0 +1,12 @@
+// Shared by the server (nav.ts builds it) and the client (MegaMenu renders it).
+// Kept free of "server-only" so a client component can import the type safely.
+
+export interface NavChild {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface NavNode extends NavChild {
+  children: NavChild[];
+}

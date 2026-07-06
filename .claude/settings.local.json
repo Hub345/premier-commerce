@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)",
+      "PowerShell(Write-Output \"=== TOOLING ===\"; foreach \\($t in @\\('node','pnpm','npm','git','npx'\\)\\) { $c = Get-Command $t -ErrorAction SilentlyContinue; if \\($c\\) { \"$t -> $\\(\\(& $t --version\\) 2>&1 | Select-Object -First 1\\)\" } else { \"$t -> NOT FOUND\" } }; Write-Output \"=== DIR CONTENTS ===\"; Get-ChildItem -Force | Select-Object Name,Length,Mode | Format-Table -AutoSize | Out-String)",
+      "PowerShell(git init -q)",
+      "PowerShell(git add -A 2>$null)",
+      "PowerShell(npm install --no-audit --no-fund 2>&1)",
+      "PowerShell(npm run typecheck 2>&1)",
+      "PowerShell(npm run build 2>&1)",
+      "Bash(gh auth *)",
+      "Bash(git rm *)",
+      "Bash(git add *)",
+      "Bash(grep -E \"node_modules|\\\\.next/|\\\\.env$|\\\\.env\\\\.local\")"
+    ]
+  }
+}

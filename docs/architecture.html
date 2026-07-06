@@ -1,0 +1,596 @@
+<style>
+  :root {
+    --ink:        #0B1113;
+    --ink-raised: #10181A;
+    --ink-card:   #0E1517;
+    --ink-line:   #1E2C2E;
+    --ink-line-2: #294042;
+    --brass:      #D8A24A;
+    --brass-soft: #E7C489;
+    --aqua:       #6FB1AC;
+    --text:       #E9E5DC;
+    --text-dim:   #A7AFAB;
+    --text-faint: #6E7876;
+    --good:       #5FB68A;
+    --warn:       #E0913C;
+    --crit:       #D46A5A;
+    --sans: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', 'Segoe UI Mono', Consolas, 'Liberation Mono', monospace;
+    --wrap: 1120px;
+    --read: 720px;
+    --r: 3px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body.__artifact_body_unused {}
+
+  .doc {
+    background: var(--ink);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  .doc ::selection { background: rgba(216,162,74,0.28); color: var(--text); }
+
+  .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 28px; }
+  .read { max-width: var(--read); }
+
+  /* ---- progress + topbar ---- */
+  .progress {
+    position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+    background: var(--brass); z-index: 50;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(11,17,19,0.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--ink-line);
+  }
+  .topbar .row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; height: 56px;
+  }
+  .mark { display: flex; align-items: baseline; gap: 10px; }
+  .mark b {
+    font-family: var(--mono); font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; font-size: 0.78rem; color: var(--text);
+  }
+  .mark span {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+  .mark i {
+    width: 7px; height: 7px; background: var(--brass); border-radius: 50%;
+    display: inline-block; transform: translateY(-1px);
+  }
+  .chip-approved {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--brass-soft);
+    border: 1px solid var(--ink-line-2); border-radius: 100px;
+    padding: 5px 11px; white-space: nowrap;
+  }
+  .chip-approved i { color: var(--good); }
+
+  /* ---- headings & type ---- */
+  h1, h2, h3 { color: var(--text); text-wrap: balance; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--brass); margin: 0 0 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::after {
+    content: ""; height: 1px; flex: 1; background: var(--ink-line);
+  }
+  .eyebrow.short::after { display: none; }
+  .sect-no {
+    font-family: var(--mono); color: var(--text-faint); font-weight: 500;
+  }
+
+  h2 { font-size: clamp(1.55rem, 3.4vw, 2.15rem); line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 20px; font-weight: 700; }
+  h3 { font-size: 1.06rem; line-height: 1.3; letter-spacing: -0.005em; margin: 0 0 8px; font-weight: 650; }
+  p { margin: 0 0 16px; }
+  a { color: var(--brass-soft); text-decoration: none; border-bottom: 1px solid rgba(231,196,137,0.28); }
+  a:hover { border-bottom-color: var(--brass-soft); }
+  strong { color: var(--text); font-weight: 650; }
+  code {
+    font-family: var(--mono); font-size: 0.86em;
+    background: var(--ink-raised); border: 1px solid var(--ink-line);
+    padding: 1px 6px; border-radius: 3px; color: var(--brass-soft);
+    white-space: nowrap;
+  }
+
+  section { padding: 74px 0; border-top: 1px solid var(--ink-line); }
+  section:first-of-type { border-top: none; }
+
+  /* ---- HERO ---- */
+  .hero {
+    padding: 96px 0 84px;
+    background:
+      radial-gradient(680px 340px at 78% -6%, rgba(216,162,74,0.10), transparent 62%),
+      radial-gradient(560px 300px at 4% 108%, rgba(111,177,172,0.06), transparent 60%);
+    border-top: none;
+  }
+  .hero .dots {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 26px 26px; mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+    opacity: 0.5;
+  }
+  .hero-inner { position: relative; }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6.6vw, 4.4rem);
+    line-height: 1.02; letter-spacing: -0.03em; font-weight: 750;
+    margin: 0 0 26px; max-width: 15ch;
+  }
+  .hero h1 .row1 { color: var(--text); }
+  .hero .lede { font-size: clamp(1.05rem, 1.9vw, 1.24rem); color: var(--text-dim); max-width: 60ch; line-height: 1.55; }
+  .hero .lede code { font-size: 0.82em; }
+
+  .meta {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1px;
+    margin-top: 52px; background: var(--ink-line); border: 1px solid var(--ink-line);
+    border-radius: var(--r); overflow: hidden;
+  }
+  .meta div { background: var(--ink); padding: 18px 20px; }
+  .meta dt { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 7px; }
+  .meta dd { margin: 0; color: var(--text); font-size: 0.92rem; line-height: 1.35; }
+
+  /* ---- DECISION CARDS ---- */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--ink-line); border: 1px solid var(--ink-line); border-radius: var(--r); overflow: hidden; }
+  .card { background: var(--ink-card); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .card .k { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); }
+  .card .v { color: var(--brass-soft); font-weight: 650; font-size: 1.12rem; letter-spacing: -0.01em; }
+  .card p { margin: 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.55; }
+
+  /* ---- ARCHITECTURE STACK ---- */
+  .stack { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .layer {
+    border: 1px solid var(--ink-line); border-radius: var(--r);
+    background: var(--ink-card);
+    display: grid; grid-template-columns: 170px 1fr; align-items: center;
+    overflow: hidden;
+  }
+  .layer .tag {
+    align-self: stretch; display: flex; flex-direction: column; justify-content: center; gap: 4px;
+    padding: 18px 20px; border-right: 1px solid var(--ink-line);
+    background: var(--ink-raised);
+  }
+  .layer .tag b { color: var(--text); font-size: 0.9rem; font-weight: 650; }
+  .layer .tag span { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
+  .nodes { display: flex; flex-wrap: wrap; gap: 10px; padding: 18px 20px; }
+  .node {
+    border: 1px solid var(--ink-line-2); border-radius: var(--r);
+    padding: 10px 14px; font-size: 0.85rem; color: var(--text);
+    background: var(--ink); display: flex; flex-direction: column; gap: 3px; min-width: 0;
+  }
+  .node span { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.06em; color: var(--text-faint); }
+  .node.data { border-color: rgba(111,177,172,0.42); }
+  .node.data b { color: var(--aqua); }
+  .node.accent { border-color: rgba(216,162,74,0.5); }
+  .node.accent b { color: var(--brass-soft); }
+  .node.future { opacity: 0.72; border-style: dashed; }
+  .flow-down { display: flex; flex-direction: column; align-items: center; height: 26px; }
+  .flow-down i { width: 1px; flex: 1; background: var(--ink-line-2); }
+  .flow-down::after { content: "▾"; color: var(--text-faint); font-size: 0.7rem; line-height: 1; margin-top: -2px; }
+
+  /* ---- CALLOUT ---- */
+  .callout {
+    border: 1px solid var(--ink-line-2); border-left: 2px solid var(--brass);
+    background: linear-gradient(180deg, rgba(216,162,74,0.05), rgba(216,162,74,0.01));
+    border-radius: var(--r); padding: 22px 24px; margin: 26px 0 0;
+  }
+  .callout p { margin: 0; color: var(--text); font-size: 0.98rem; }
+  .callout p + p { margin-top: 10px; color: var(--text-dim); font-size: 0.9rem; }
+  .callout .lbl { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brass); display: block; margin-bottom: 10px; }
+
+  /* ---- DATA MODEL ---- */
+  .groups { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .group { border: 1px solid var(--ink-line); border-radius: var(--r); background: var(--ink-card); overflow: hidden; }
+  .group h4 { margin: 0; padding: 13px 16px; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); border-bottom: 1px solid var(--ink-line); background: var(--ink-raised); }
+  .group ul { list-style: none; margin: 0; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .group li { font-family: var(--mono); font-size: 0.82rem; color: var(--text); padding: 7px 10px; border: 1px solid var(--ink-line); border-radius: 3px; background: var(--ink); }
+  .group li em { color: var(--text-faint); font-style: normal; font-size: 0.72rem; display: block; margin-top: 2px; }
+  .group.pay li { border-color: rgba(216,162,74,0.34); }
+
+  /* ---- CODE ---- */
+  .code-wrap { border: 1px solid var(--ink-line); border-radius: var(--r); background: #0A1012; overflow: hidden; margin-top: 8px; }
+  .code-wrap .bar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--ink-line); }
+  .code-wrap .bar span { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; color: var(--text-faint); }
+  .code-wrap .bar .fn { color: var(--brass-soft); }
+  pre { margin: 0; padding: 20px 22px; overflow-x: auto; }
+  pre code { font-family: var(--mono); font-size: 0.82rem; line-height: 1.7; white-space: pre; background: none; border: none; padding: 0; color: #C7D0CD; }
+  .c { color: var(--text-faint); font-style: italic; }
+  .kw { color: var(--brass-soft); }
+  .ty { color: var(--aqua); }
+  .st { color: #B7C77F; }
+
+  /* ---- SEQUENCE ---- */
+  .seq { display: flex; flex-direction: column; gap: 1px; background: var(--ink-line); border: 1px solid var(--ink-line); border-radius: var(--r); overflow: hidden; }
+  .step { background: var(--ink-card); display: grid; grid-template-columns: 54px 200px 1fr; align-items: center; gap: 0; }
+  .step .n { font-family: var(--mono); font-size: 0.9rem; color: var(--brass); text-align: center; align-self: stretch; display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--ink-line); background: var(--ink-raised); }
+  .step .lane { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em; color: var(--text-faint); padding: 14px 18px; }
+  .step .lane b { color: var(--aqua); font-weight: 500; }
+  .step .act { padding: 14px 18px; font-size: 0.9rem; color: var(--text-dim); }
+  .step .act strong { color: var(--text); }
+
+  /* ---- SECURITY GRID ---- */
+  .sec { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .sec .pillar { border: 1px solid var(--ink-line); border-radius: var(--r); padding: 20px 22px; background: var(--ink-card); }
+  .sec .pillar h4 { margin: 0 0 8px; color: var(--text); font-size: 0.98rem; }
+  .sec .pillar p { margin: 0; font-size: 0.88rem; color: var(--text-dim); }
+  .owasp { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .owasp .t { font-family: var(--mono); font-size: 0.72rem; color: var(--text-dim); border: 1px solid var(--ink-line); border-radius: 100px; padding: 6px 12px; }
+  .owasp .t b { color: var(--good); font-weight: 500; }
+
+  /* ---- ROADMAP ---- */
+  .road { display: flex; flex-direction: column; gap: 1px; background: var(--ink-line); border: 1px solid var(--ink-line); border-radius: var(--r); overflow: hidden; }
+  .leg { background: var(--ink-card); display: grid; grid-template-columns: 120px 1fr; gap: 0; align-items: stretch; }
+  .leg .d { font-family: var(--mono); font-size: 0.78rem; color: var(--brass); padding: 16px 20px; border-right: 1px solid var(--ink-line); background: var(--ink-raised); display: flex; align-items: center; }
+  .leg .w { padding: 16px 20px; font-size: 0.92rem; color: var(--text-dim); }
+  .leg .w strong { color: var(--text); }
+  .leg.gate { background: rgba(224,145,60,0.06); }
+  .leg.gate .d { color: var(--warn); }
+  .leg.gate .w b { color: var(--warn); font-weight: 600; }
+
+  /* ---- FOOTER ---- */
+  .foot { border-top: 1px solid var(--ink-line); padding: 40px 0 64px; }
+  .foot .row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; align-items: baseline; }
+  .foot p { margin: 0; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--text-faint); }
+  .foot .brass { color: var(--brass); }
+
+  .lead-p { color: var(--text-dim); font-size: 1.04rem; }
+  .note { font-size: 0.86rem; color: var(--text-faint); margin-top: 14px; }
+
+  @media (max-width: 900px) {
+    .meta { grid-template-columns: repeat(2,1fr); }
+    .cards { grid-template-columns: 1fr; }
+    .groups { grid-template-columns: repeat(2,1fr); }
+    .sec { grid-template-columns: 1fr; }
+    .layer { grid-template-columns: 1fr; }
+    .layer .tag { border-right: none; border-bottom: 1px solid var(--ink-line); flex-direction: row; align-items: baseline; gap: 10px; }
+    .step { grid-template-columns: 40px 1fr; }
+    .step .lane { display: none; }
+    .leg { grid-template-columns: 92px 1fr; }
+  }
+  @media (max-width: 560px) {
+    .groups { grid-template-columns: 1fr; }
+    .meta { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .progress { transition: none; }
+    * { scroll-behavior: auto; }
+  }
+</style>
+
+<div class="progress" id="progress"></div>
+
+<div class="doc">
+
+  <header class="topbar">
+    <div class="wrap row">
+      <div class="mark"><i></i><b>Premier</b><span>Commerce Platform</span></div>
+      <div class="chip-approved"><i>●</i>&nbsp; Architecture v1 · Approved</div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="dots"></div>
+    <div class="wrap hero-inner">
+      <p class="eyebrow short">Project Zenith &nbsp;·&nbsp; Phase 1 &nbsp;·&nbsp; July 2026</p>
+      <h1><span class="row1">Bizrah Electronics<br>is row one.</span></h1>
+      <p class="lede">A multi-tenant commerce kernel for the Kenyan market. One Postgres database, one storefront codebase, one admin app — every record keyed by <code>business_id</code>, isolated at the database, settled through M-Pesa. Engineered for tenant one. Architected for tenant five hundred.</p>
+
+      <dl class="meta">
+        <div><dt>First tenant</dt><dd>Bizrah Electronics<br>Retail electronics</dd></div>
+        <div><dt>Stack</dt><dd>Next.js · Supabase<br>PostgreSQL · TypeScript</dd></div>
+        <div><dt>Region</dt><dd>EU-Frankfurt<br>Cloudflare edge</dd></div>
+        <div><dt>Payments</dt><dd>M-Pesa Daraja 2.0<br>Stripe (secondary)</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- DECISIONS -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow"><span class="sect-no">§01</span> Decisions on record</p>
+      <h2>Six calls that shape everything downstream.</h2>
+      <p class="read lead-p">Each was a fork with a real trade-off. These are the ones we locked before writing code — the rationale in one line so the next person on the team inherits the <em>why</em>, not just the <em>what</em>.</p>
+
+      <div class="cards" style="margin-top:36px;">
+        <div class="card">
+          <div class="k">Multi-tenancy</div>
+          <div class="v">Design for 500, build for 1</div>
+          <p>Every table is tenant-ready from row one. The provisioning UI, custom domains, and theming engine wait until tenant two signs — no machinery serving zero customers.</p>
+        </div>
+        <div class="card">
+          <div class="k">Checkout</div>
+          <div class="v">Guest, phone-first</div>
+          <p>Buy with a phone number and M-Pesa — no account required. Optional accounts are offered after the sale, where they cost no conversion.</p>
+        </div>
+        <div class="card">
+          <div class="k">Payments</div>
+          <div class="v">Bizrah&rsquo;s own Till</div>
+          <p>Money settles directly to the merchant. Each tenant brings its own Daraja credentials, so there&rsquo;s no float, KYC, or aggregator licensing on the platform.</p>
+        </div>
+        <div class="card">
+          <div class="k">API</div>
+          <div class="v">One versioned contract</div>
+          <p>A thin BFF exposes <code>v1</code>. The web store today and the Flutter admin app tomorrow consume the exact same surface — logic lives in one place.</p>
+        </div>
+        <div class="card">
+          <div class="k">Variants</div>
+          <div class="v">First-class from day one</div>
+          <p>SKU, stock, price, images, and attributes live on the <em>variant</em>, not the product. A 256&nbsp;GB phone and its 128&nbsp;GB sibling are distinct sellable units.</p>
+        </div>
+        <div class="card">
+          <div class="k">Search</div>
+          <div class="v">Portable by design</div>
+          <p>Postgres full-text now, behind a provider interface. Swapping in Meilisearch or Algolia later touches one adapter — never the frontend.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE MAP -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow"><span class="sect-no">§02</span> Architecture map</p>
+      <h2>One kernel, two consumers, total data isolation.</h2>
+      <p class="read lead-p">Requests enter at the edge, resolve their tenant once, and flow through a thin backend-for-frontend into a single RLS-guarded database. The Flutter admin app is dashed — not built in Phase 1, but every layer already speaks its language.</p>
+
+      <div class="stack" style="margin-top:36px;">
+        <div class="layer">
+          <div class="tag"><b>Clients</b><span>Consumers</span></div>
+          <div class="nodes">
+            <div class="node"><b>Next.js Storefront</b><span>bizrah.premier.app</span></div>
+            <div class="node future"><b>Flutter Admin</b><span>future · same contract</span></div>
+          </div>
+        </div>
+        <div class="flow-down"><i></i></div>
+        <div class="layer">
+          <div class="tag"><b>Edge</b><span>Cloudflare</span></div>
+          <div class="nodes">
+            <div class="node"><b>CDN &amp; cache</b><span>static + image delivery</span></div>
+            <div class="node"><b>Host → tenant map</b><span>cached resolution</span></div>
+          </div>
+        </div>
+        <div class="flow-down"><i></i></div>
+        <div class="layer">
+          <div class="tag"><b>BFF</b><span>v1 contract</span></div>
+          <div class="nodes">
+            <div class="node accent"><b>Tenant middleware</b><span>Host → business_id</span></div>
+            <div class="node"><b>Route handlers</b><span>catalog · checkout · admin</span></div>
+            <div class="node"><b>Edge functions</b><span>stk-push · callback · reconcile</span></div>
+          </div>
+        </div>
+        <div class="flow-down"><i></i></div>
+        <div class="layer">
+          <div class="tag"><b>Data &amp; services</b><span>Supabase</span></div>
+          <div class="nodes">
+            <div class="node data"><b>PostgreSQL</b><span>RLS per business_id</span></div>
+            <div class="node"><b>Auth</b><span>Google · staff only</span></div>
+            <div class="node"><b>Storage</b><span>product images</span></div>
+          </div>
+        </div>
+        <div class="flow-down"><i></i></div>
+        <div class="layer">
+          <div class="tag"><b>External</b><span>Rails</span></div>
+          <div class="nodes">
+            <div class="node accent"><b>M-Pesa Daraja 2.0</b><span>STK Push · C2B callback</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout read" style="max-width:none;">
+        <span class="lbl">The load-bearing rule</span>
+        <p>The client never sends <code>business_id</code>. It is derived from the request&rsquo;s host, server-side, and stamped into context before a single query runs.</p>
+        <p>That one discipline closes the most common multi-tenant leak — a client asking for another tenant&rsquo;s data and being believed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA MODEL -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow"><span class="sect-no">§03</span> Data model</p>
+      <h2>Every row belongs to exactly one business.</h2>
+      <p class="read lead-p">Thirteen tables across four domains. Money is stored as integer cents — never a floating-point value. Stock and price attach to the variant, so inventory is always counted against something sellable.</p>
+
+      <div class="groups" style="margin-top:36px;">
+        <div class="group">
+          <h4>Tenancy</h4>
+          <ul>
+            <li>businesses<em>tenant master + VAT toggle</em></li>
+            <li>profiles<em>linked to auth.users</em></li>
+            <li>business_members<em>role: owner / manager / staff</em></li>
+            <li>business_payment_configs<em>encrypted Daraja creds</em></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h4>Catalog</h4>
+          <ul>
+            <li>categories<em>self-referencing tree</em></li>
+            <li>products<em>jsonb attributes</em></li>
+            <li>product_variants<em>sku · stock · price · images</em></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h4>Commerce</h4>
+          <ul>
+            <li>customers<em>keyed by phone</em></li>
+            <li>orders<em>reference · status · totals</em></li>
+            <li>order_items<em>price frozen at sale</em></li>
+            <li>inventory_logs<em>append-only ledger</em></li>
+          </ul>
+        </div>
+        <div class="group pay">
+          <h4>Payments</h4>
+          <ul>
+            <li>payments<em>idempotent · reconcilable</em></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="code-wrap" style="margin-top:26px;">
+        <div class="bar"><span class="fn">supabase/migrations/0001_init.sql</span><span>&nbsp;·&nbsp; representative excerpt</span></div>
+        <pre><code><span class="c">-- Stock, price and images live on the variant, not the product.</span>
+<span class="kw">create table</span> product_variants (
+  id          <span class="ty">uuid</span> <span class="kw">primary key default</span> gen_random_uuid(),
+  business_id <span class="ty">uuid</span> <span class="kw">not null references</span> businesses(id) <span class="kw">on delete cascade</span>,
+  product_id  <span class="ty">uuid</span> <span class="kw">not null references</span> products(id)   <span class="kw">on delete cascade</span>,
+  sku         <span class="ty">text</span>,
+  label       <span class="ty">text</span>,                        <span class="c">-- "256GB / Graphite"</span>
+  price_cents <span class="ty">bigint</span> <span class="kw">not null</span>,               <span class="c">-- integer money, never floats</span>
+  stock       <span class="ty">integer</span> <span class="kw">not null default</span> <span class="st">0</span>,
+  attributes  <span class="ty">jsonb</span> <span class="kw">not null default</span> <span class="st">'{}'</span>,   <span class="c">-- storage, color, warranty…</span>
+  images      <span class="ty">text</span>[] <span class="kw">not null default</span> <span class="st">'{}'</span>
+);
+
+<span class="c">-- Public reads only published rows; writes require membership.</span>
+<span class="kw">create policy</span> variants_public_read <span class="kw">on</span> product_variants
+  <span class="kw">for select using</span> (<span class="kw">exists</span> (
+    <span class="kw">select</span> <span class="st">1</span> <span class="kw">from</span> products p
+    <span class="kw">where</span> p.id = product_variants.product_id
+      <span class="kw">and</span> p.status = <span class="st">'published'</span>));</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROTOCOL -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow"><span class="sect-no">§04</span> Standard Commerce Protocol</p>
+      <h2>One typed contract. Web today, Flutter tomorrow.</h2>
+      <p class="read lead-p">The storefront and the future admin app never talk to the database directly — they call this surface. It is the seam that keeps the frontend decoupled from Postgres and lets a Dart client consume the identical API a year from now.</p>
+
+      <div class="code-wrap" style="margin-top:26px;">
+        <div class="bar"><span class="fn">packages/protocol/src/client.ts</span></div>
+        <pre><code><span class="kw">export interface</span> <span class="ty">CommerceClient</span> {
+  catalog: {
+    listProducts(q: <span class="ty">ProductQuery</span>): <span class="ty">Promise</span>&lt;<span class="ty">Paginated</span>&lt;<span class="ty">Product</span>&gt;&gt;;
+    getProduct(slug: <span class="ty">string</span>):    <span class="ty">Promise</span>&lt;<span class="ty">Product</span>&gt;;
+    listCategories():             <span class="ty">Promise</span>&lt;<span class="ty">Category</span>[]&gt;;
+    search(term: <span class="ty">string</span>, f?: <span class="ty">ProductFilters</span>): <span class="ty">Promise</span>&lt;<span class="ty">Product</span>[]&gt;;
+  };
+  checkout: {
+    <span class="c">// Server reprices from the DB and computes VAT — client totals are never trusted.</span>
+    createOrder(input: <span class="ty">CreateOrderInput</span>): <span class="ty">Promise</span>&lt;<span class="ty">Order</span>&gt;;
+  };
+  payments: {
+    initiateMpesa(orderId: <span class="ty">string</span>, phone: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;{ checkoutRequestId: <span class="ty">string</span> }&gt;;
+    getStatus(orderId: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;<span class="ty">PaymentStatus</span>&gt;;  <span class="c">// the reconciliation poll</span>
+  };
+  orders: {
+    lookup(reference: <span class="ty">string</span>, phone: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;<span class="ty">Order</span>&gt;; <span class="c">// guest tracking</span>
+  };
+  admin: <span class="ty">AdminSurface</span>;   <span class="c">// auth + membership required — never imported by the storefront</span>
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- M-PESA FLOW -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow"><span class="sect-no">§05</span> Payment flow</p>
+      <h2>The hard part: a payment that can only ever apply once.</h2>
+      <p class="read lead-p">STK Push has a notorious failure mode — the customer pays, but the callback never arrives. So two independent paths can confirm a payment, and an idempotency key guarantees neither can double-charge or oversell the last unit.</p>
+
+      <div class="seq" style="margin-top:36px;">
+        <div class="step"><div class="n">1</div><div class="lane"><b>Customer</b> → BFF</div><div class="act"><strong>Create order.</strong> Items + phone posted; server reprices from the DB, computes VAT, writes the order as <code>pending</code>.</div></div>
+        <div class="step"><div class="n">2</div><div class="lane"><b>BFF</b> → Edge fn</div><div class="act"><strong>Record intent.</strong> A <code>payment</code> row is written with a unique <code>idempotency_key</code> before anything leaves the building.</div></div>
+        <div class="step"><div class="n">3</div><div class="lane"><b>Edge fn</b> → Daraja</div><div class="act"><strong>STK Push.</strong> Fired against the tenant&rsquo;s own shortcode; the customer gets a PIN prompt on their phone.</div></div>
+        <div class="step"><div class="n">4</div><div class="lane"><b>Daraja</b> → Callback</div><div class="act"><strong>Path A — the callback.</strong> On success, the edge function applies the payment once, guarded by the idempotency key.</div></div>
+        <div class="step"><div class="n">5</div><div class="lane"><b>Customer</b> → BFF</div><div class="act"><strong>Path B — the poll.</strong> If no callback lands, the client polls status; the BFF queries Daraja and reconciles through the same guard.</div></div>
+        <div class="step"><div class="n">6</div><div class="lane"><b>BFF</b> → Postgres</div><div class="act"><strong>Settle atomically.</strong> In one locked transaction: mark <code>paid</code>, decrement variant stock, append an <code>inventory_log</code> — no oversell under concurrency.</div></div>
+        <div class="step"><div class="n">7</div><div class="lane"><b>Postgres</b> → Customer</div><div class="act"><strong>Confirm.</strong> Order flips to <code>paid</code>; receipt is issued with the VAT breakdown when the tenant&rsquo;s toggle is on.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow"><span class="sect-no">§06</span> Security model</p>
+      <h2>Isolation lives at the database, not just the app.</h2>
+      <p class="read lead-p">Row-Level Security guards the client path. But callbacks and inventory writes run with the service role, which bypasses RLS entirely — so the privileged path carries and checks <code>business_id</code> in code. Two paths, two enforcement points, one boundary.</p>
+
+      <div class="sec" style="margin-top:36px;">
+        <div class="pillar">
+          <h4>RLS — the client path</h4>
+          <p>Every tenant table enables Row-Level Security. Authenticated writes require a matching <code>business_members</code> row; public reads see only published catalog rows.</p>
+        </div>
+        <div class="pillar">
+          <h4>Service-role discipline — the privileged path</h4>
+          <p>Server code that bypasses RLS (callbacks, stock decrements) must stamp <code>business_id</code> from the resolved host and validate it. &ldquo;RLS handles it&rdquo; is treated as a bug.</p>
+        </div>
+        <div class="pillar">
+          <h4>Trust nothing from the client</h4>
+          <p>Prices and totals are recomputed server-side from the database at checkout. The client proposes a cart; the server decides what it costs.</p>
+        </div>
+        <div class="pillar">
+          <h4>Secrets never touch the browser</h4>
+          <p>Daraja passkeys are encrypted at rest and read only by edge functions under the service role. No tenant credential is ever serialized to a client.</p>
+        </div>
+      </div>
+
+      <div class="owasp">
+        <div class="t"><b>SQLi</b> — parameterized queries via PostgREST</div>
+        <div class="t"><b>XSS</b> — React escaping + strict CSP</div>
+        <div class="t"><b>CSRF</b> — SameSite cookies + tokens</div>
+        <div class="t"><b>AuthZ</b> — RLS + membership checks</div>
+        <div class="t"><b>Abuse</b> — edge rate limiting</div>
+        <div class="t"><b>Uploads</b> — type + size validation, signed URLs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow"><span class="sect-no">§07</span> Roadmap to launch</p>
+      <h2>Bizrah live in about two weeks — pending Safaricom.</h2>
+      <p class="read lead-p">The code is a two-week build for one focused engineer. The one thing outside our control is Safaricom&rsquo;s production go-live approval, so it&rsquo;s submitted on day one and we build against sandbox until it clears.</p>
+
+      <div class="road" style="margin-top:36px;">
+        <div class="leg"><div class="d">Days 1–2</div><div class="w"><strong>Foundation.</strong> Monorepo, migration + RLS, Bizrah seeded as tenant #1, tenant middleware resolving the host.</div></div>
+        <div class="leg"><div class="d">Days 3–5</div><div class="w"><strong>Storefront shell.</strong> Home, category, and product pages loading Bizrah&rsquo;s branding and catalog live from the database.</div></div>
+        <div class="leg"><div class="d">Days 6–7</div><div class="w"><strong>Buy path.</strong> Full-text search, filters, client-side cart, and the guest checkout form.</div></div>
+        <div class="leg"><div class="d">Days 8–10</div><div class="w"><strong>Payments.</strong> M-Pesa edge functions on sandbox — STK push, callback, reconciliation poll, and receipts.</div></div>
+        <div class="leg"><div class="d">Days 11–12</div><div class="w"><strong>Admin seed.</strong> A minimal internal console to load the real catalog and watch orders land.</div></div>
+        <div class="leg"><div class="d">Days 13–14</div><div class="w"><strong>Polish &amp; ship.</strong> Core Web Vitals pass, Cloudflare caching, deploy to Vercel.</div></div>
+        <div class="leg gate"><div class="d">Parallel</div><div class="w"><b>External gate:</b> Safaricom production go-live submitted on day one — the dependency that decides when real money can move.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap row">
+      <p><span class="brass">Premier Commerce Platform</span> &nbsp;·&nbsp; Architecture v1 &nbsp;·&nbsp; Approved July 2026</p>
+      <p>Next.js · Supabase · PostgreSQL · M-Pesa Daraja 2.0 &nbsp;·&nbsp; EU-Frankfurt + Cloudflare</p>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var bar = document.getElementById('progress');
+    function onScroll() {
+      var h = document.documentElement;
+      var max = (h.scrollHeight - h.clientHeight) || 1;
+      var pct = Math.min(100, Math.max(0, (h.scrollTop || document.body.scrollTop) / max * 100));
+      bar.style.width = pct + '%';
+    }
+    document.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+  })();
+</script>

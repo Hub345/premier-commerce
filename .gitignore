@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+
+# builds
+.next/
+out/
+dist/
+build/
+
+# env
+.env
+.env.local
+.env*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# tooling
+.turbo/
+coverage/
+.vercel/
+
+# local editor/agent settings (keep launch.json, ignore local overrides)
+.claude/settings.local.json
+
+# next
+next-env.d.ts
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
