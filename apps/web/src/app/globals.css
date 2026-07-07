@@ -39,3 +39,13 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+/* Lets the nav row scroll instead of wrapping mid-label when a tenant's
+   category names don't all fit the header's max width. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

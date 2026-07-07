@@ -31,23 +31,6 @@ begin
 end;
 $$;
 
--- Membership check used inside RLS policies. SECURITY DEFINER so it can read
--- business_members without triggering that table's own RLS recursively.
-create or replace function public.is_business_member(p_business_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from business_members m
-    where m.business_id = p_business_id
-      and m.profile_id = auth.uid()
-  );
-$$;
-
 -- ─── Tenancy ────────────────────────────────────────────────────────────
 
 create table businesses (
@@ -81,6 +64,23 @@ create table business_members (
   created_at  timestamptz not null default now(),
   primary key (business_id, profile_id)
 );
+
+-- Membership check used inside RLS policies. SECURITY DEFINER so it can read
+-- business_members without triggering that table's own RLS recursively.
+create or replace function public.is_business_member(p_business_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from business_members m
+    where m.business_id = p_business_id
+      and m.profile_id = auth.uid()
+  );
+$$;
 
 -- Per-tenant payment credentials. Secrets must be encrypted at rest (pgsodium /
 -- Vault) before production — never exposed to any client. RLS denies all

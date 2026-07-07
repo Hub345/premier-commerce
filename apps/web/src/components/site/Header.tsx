@@ -1,13 +1,19 @@
 import Link from "next/link";
 import { getCurrentBusiness } from "@/lib/tenant";
 import { getNavigationTree } from "@/lib/nav";
+import { getCurrentMember } from "@/lib/auth";
 import { MegaMenu } from "@/components/site/MegaMenu";
 import { SearchTrigger } from "@/components/site/SearchTrigger";
 import { CartWidget } from "@/components/site/CartWidget";
+import { UserMenu } from "@/components/site/UserMenu";
 
 export async function SiteHeader() {
   const business = await getCurrentBusiness();
-  const tree = business ? await getNavigationTree(business.id) : [];
+  // Nav tree and member lookup both only need business.id and don't depend on
+  // each other — run them concurrently instead of two sequential round trips.
+  const [tree, member] = business
+    ? await Promise.all([getNavigationTree(business.id), getCurrentMember(business.id)])
+    : [[], null];
   const name = business?.name ?? "Premier";
 
   return (
@@ -32,12 +38,7 @@ export async function SiteHeader() {
 
           <div className="flex shrink-0 items-center gap-0.5">
             <SearchTrigger />
-            <span className="flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-paper hover:text-ink">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <circle cx="12" cy="8" r="3.4" />
-                <path d="M5.5 20a6.5 6.5 0 0113 0" strokeLinecap="round" />
-              </svg>
-            </span>
+            <UserMenu member={member ? { fullName: member.fullName, email: member.email } : null} />
             <CartWidget />
           </div>
         </div>

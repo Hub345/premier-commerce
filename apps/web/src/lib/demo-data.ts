@@ -11,6 +11,7 @@ import type {
   SearchResult,
 } from "@premier/protocol";
 import type { NavNode } from "@/lib/nav-types";
+import { ZENITH_DEFAULTS } from "@/lib/zenith-defaults";
 
 export const demoBusiness: Business = {
   id: "11111111-1111-1111-1111-111111111111",
@@ -20,13 +21,22 @@ export const demoBusiness: Business = {
   branding: {
     logoUrl: null,
     faviconUrl: null,
-    accent: "#D8A24A",
-    primary: "#161613",
-    tagline: "Premium electronics, delivered across Kenya.",
-    heroHeadline: "Technology worth the upgrade.",
-    heroSubcopy:
-      "Phones, televisions, computers and appliances from the brands you trust — with M-Pesa checkout and countrywide delivery.",
+    accent: ZENITH_DEFAULTS.accent,
+    primary: ZENITH_DEFAULTS.primary,
+    fontFamily: ZENITH_DEFAULTS.fontFamily,
+    tagline: ZENITH_DEFAULTS.tagline,
+    heroHeadline: ZENITH_DEFAULTS.heroHeadline,
+    heroSubcopy: ZENITH_DEFAULTS.heroSubcopy,
   },
+  contact: {
+    phone: "+254700123456",
+    email: "support@bizrah.co.ke",
+    facebookUrl: "https://facebook.com/bizrahelectronics",
+    instagramUrl: "https://instagram.com/bizrahelectronics",
+    youtubeUrl: null,
+    xUrl: null,
+  },
+  benefits: ZENITH_DEFAULTS.benefits,
   vat: { enabled: true, rate: 0.16, registrationNumber: "P051234567X" },
   status: "active",
 };
@@ -37,10 +47,10 @@ export const demoNavTree: NavNode[] = [
     name: "Phones & Tablets",
     slug: "phones",
     children: [
-      { id: "smartphones", name: "Smartphones", slug: "smartphones" },
-      { id: "tablets", name: "Tablets", slug: "tablets" },
-      { id: "wearables", name: "Wearables", slug: "wearables" },
-      { id: "phone-accessories", name: "Phone Accessories", slug: "phone-accessories" },
+      { id: "smartphones", name: "Smartphones", slug: "smartphones", children: [] },
+      { id: "tablets", name: "Tablets", slug: "tablets", children: [] },
+      { id: "wearables", name: "Wearables", slug: "wearables", children: [] },
+      { id: "phone-accessories", name: "Phone Accessories", slug: "phone-accessories", children: [] },
     ],
   },
   {
@@ -48,11 +58,11 @@ export const demoNavTree: NavNode[] = [
     name: "Televisions",
     slug: "televisions",
     children: [
-      { id: "oled-tvs", name: "OLED TVs", slug: "oled-tvs" },
-      { id: "qled-led-tvs", name: "QLED & LED TVs", slug: "qled-led-tvs" },
-      { id: "tv-shop-by-size", name: "Shop by Size", slug: "tv-shop-by-size" },
-      { id: "projectors", name: "Projectors", slug: "projectors" },
-      { id: "tv-accessories", name: "TV Accessories", slug: "tv-accessories" },
+      { id: "oled-tvs", name: "OLED TVs", slug: "oled-tvs", children: [] },
+      { id: "qled-led-tvs", name: "QLED & LED TVs", slug: "qled-led-tvs", children: [] },
+      { id: "tv-shop-by-size", name: "Shop by Size", slug: "tv-shop-by-size", children: [] },
+      { id: "projectors", name: "Projectors", slug: "projectors", children: [] },
+      { id: "tv-accessories", name: "TV Accessories", slug: "tv-accessories", children: [] },
     ],
   },
   {
@@ -60,10 +70,10 @@ export const demoNavTree: NavNode[] = [
     name: "Computers",
     slug: "computers",
     children: [
-      { id: "laptops", name: "Laptops", slug: "laptops" },
-      { id: "desktops", name: "Desktops", slug: "desktops" },
-      { id: "monitors", name: "Monitors", slug: "monitors" },
-      { id: "computer-accessories", name: "Computer Accessories", slug: "computer-accessories" },
+      { id: "laptops", name: "Laptops", slug: "laptops", children: [] },
+      { id: "desktops", name: "Desktops", slug: "desktops", children: [] },
+      { id: "monitors", name: "Monitors", slug: "monitors", children: [] },
+      { id: "computer-accessories", name: "Computer Accessories", slug: "computer-accessories", children: [] },
     ],
   },
   {
@@ -71,10 +81,10 @@ export const demoNavTree: NavNode[] = [
     name: "Audio",
     slug: "audio",
     children: [
-      { id: "headphones", name: "Headphones", slug: "headphones" },
-      { id: "wireless-earbuds", name: "Wireless Earbuds", slug: "wireless-earbuds" },
-      { id: "speakers", name: "Speakers", slug: "speakers" },
-      { id: "home-audio", name: "Home Audio", slug: "home-audio" },
+      { id: "headphones", name: "Headphones", slug: "headphones", children: [] },
+      { id: "wireless-earbuds", name: "Wireless Earbuds", slug: "wireless-earbuds", children: [] },
+      { id: "speakers", name: "Speakers", slug: "speakers", children: [] },
+      { id: "home-audio", name: "Home Audio", slug: "home-audio", children: [] },
     ],
   },
   {
@@ -82,10 +92,10 @@ export const demoNavTree: NavNode[] = [
     name: "Home Appliances",
     slug: "appliances",
     children: [
-      { id: "refrigerators", name: "Refrigerators", slug: "refrigerators" },
-      { id: "washing-machines", name: "Washing Machines", slug: "washing-machines" },
-      { id: "cooking", name: "Cooking", slug: "cooking" },
-      { id: "air-treatment", name: "Air Treatment", slug: "air-treatment" },
+      { id: "refrigerators", name: "Refrigerators", slug: "refrigerators", children: [] },
+      { id: "washing-machines", name: "Washing Machines", slug: "washing-machines", children: [] },
+      { id: "cooking", name: "Cooking", slug: "cooking", children: [] },
+      { id: "air-treatment", name: "Air Treatment", slug: "air-treatment", children: [] },
     ],
   },
   {
@@ -93,10 +103,10 @@ export const demoNavTree: NavNode[] = [
     name: "Accessories",
     slug: "accessories",
     children: [
-      { id: "chargers-cables", name: "Chargers & Cables", slug: "chargers-cables" },
-      { id: "power-banks", name: "Power Banks", slug: "power-banks" },
-      { id: "cases-covers", name: "Cases & Covers", slug: "cases-covers" },
-      { id: "storage-memory", name: "Storage & Memory", slug: "storage-memory" },
+      { id: "chargers-cables", name: "Chargers & Cables", slug: "chargers-cables", children: [] },
+      { id: "power-banks", name: "Power Banks", slug: "power-banks", children: [] },
+      { id: "cases-covers", name: "Cases & Covers", slug: "cases-covers", children: [] },
+      { id: "storage-memory", name: "Storage & Memory", slug: "storage-memory", children: [] },
     ],
   },
 ];
@@ -355,6 +365,28 @@ export function demoCategoryWithProducts(slug: string): {
     }
   }
   return { category: null, trail: [], subcategories: [], hero: null, products: [] };
+}
+
+// Gallery order for the "/shop" Grand Gallery — mirrors migration 0005's
+// featured_rank seed for Bizrah.
+const FEATURED_ORDER = ["televisions", "phones", "computers", "audio", "appliances"];
+
+export interface FeaturedCategoryBlock {
+  category: { id: string; name: string; slug: string };
+  hero: DemoHero;
+  products: Product[];
+}
+
+export function demoFeaturedCategoriesWithProducts(): FeaturedCategoryBlock[] {
+  return FEATURED_ORDER.map((slug) => {
+    const top = demoNavTree.find((n) => n.slug === slug);
+    if (!top) return null;
+    return {
+      category: { id: top.id, name: top.name, slug: top.slug },
+      hero: heroFor(top.slug, top.name),
+      products: demoProductsInCategory(slug).products,
+    };
+  }).filter((b): b is FeaturedCategoryBlock => b !== null);
 }
 
 export const demoSearchProvider: SearchProvider = {

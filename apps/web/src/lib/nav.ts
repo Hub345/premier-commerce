@@ -26,22 +26,20 @@ export async function getNavigationTree(businessId: string): Promise<NavNode[]> 
   if (error || !data) return [];
   const rows = data as CategoryRow[];
 
-  const roots: NavNode[] = [];
-  const rootById = new Map<string, NavNode>();
-
+  // Generic tree build — any depth (Phones > Smartphones > Samsung, and
+  // beyond), not hardcoded to two levels.
+  const nodeById = new Map<string, NavNode>();
   for (const c of rows) {
-    if (c.parent_id === null) {
-      const node: NavNode = { id: c.id, name: c.name, slug: c.slug, children: [] };
-      roots.push(node);
-      rootById.set(c.id, node);
-    }
+    nodeById.set(c.id, { id: c.id, name: c.name, slug: c.slug, children: [] });
   }
 
+  const roots: NavNode[] = [];
   for (const c of rows) {
-    if (c.parent_id === null) continue;
-    const parent = rootById.get(c.parent_id);
-    if (parent) {
-      parent.children.push({ id: c.id, name: c.name, slug: c.slug });
+    const node = nodeById.get(c.id)!;
+    if (c.parent_id === null) {
+      roots.push(node);
+    } else {
+      nodeById.get(c.parent_id)?.children.push(node);
     }
   }
 

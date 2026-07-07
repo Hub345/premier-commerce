@@ -13,8 +13,12 @@ export function Carousel({ children }: { children: ReactNode }) {
 
   const measure = useCallback(() => {
     const el = ref.current;
-    if (!el) return;
-    const count = Math.max(1, Math.ceil((el.scrollWidth - 2) / el.clientWidth));
+    // clientWidth is 0 before the track has been laid out (e.g. the first
+    // measure() call can race layout) — dividing by it yields Infinity/NaN,
+    // which crashes Array.from({ length: pages }) below. Skip until real.
+    if (!el || el.clientWidth === 0) return;
+    const raw = Math.ceil((el.scrollWidth - 2) / el.clientWidth);
+    const count = Number.isFinite(raw) ? Math.max(1, raw) : 1;
     setPages(count);
     setPage(Math.min(count - 1, Math.round(el.scrollLeft / el.clientWidth)));
   }, []);

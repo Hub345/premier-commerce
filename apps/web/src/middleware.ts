@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { env, hasSupabaseEnv } from "@/lib/env";
 
 // Tenant resolution happens once, at the edge. The client never sends a
 // business id — it is derived here from the request host and stamped into a
@@ -34,7 +36,7 @@ function resolveSlug(host: string): string {
   return DEFAULT_SLUG;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const slug = resolveSlug(host);
 
@@ -42,7 +44,40 @@ export function middleware(request: NextRequest) {
   requestHeaders.set("x-tenant-slug", slug);
   requestHeaders.set("x-tenant-host", host);
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
+  if (!hasSupabaseEnv()) return response;
+
+  // A guest browsing the storefront carries no Supabase auth cookie at all —
+  // there is no session to refresh, so skip the network round-trip to
+  // Supabase Auth entirely. This is the majority of traffic on a storefront,
+  // and getUser() here was previously running (and blocking the response)
+  // on every single request, signed-in or not.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+  if (!hasAuthCookie) return response;
+
+  // Refresh the Supabase auth session cookie on every request — the standard
+  // @supabase/ssr middleware pattern, merged with tenant header stamping.
+  const supabase = createServerClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        response = NextResponse.next({ request: { headers: requestHeaders } });
+        for (const { name, value, options } of cookiesToSet) {
+          response.cookies.set(name, value, options);
+        }
+      },
+    },
+  });
+
+  await supabase.auth.getUser();
+  return response;
 }
 
 export const config = {

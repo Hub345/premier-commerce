@@ -8,6 +8,7 @@ import {
   demoProductBySlug,
   demoProductsInCategory,
   demoCategoryWithProducts,
+  demoFeaturedCategoriesWithProducts,
 } from "@/lib/demo-data";
 
 // Nested select pulls each product with its variants in one round trip.
@@ -209,4 +210,120 @@ export async function getCategoryWithProducts(
     hero,
     products,
   };
+}
+
+// The Atomic Vault manages the full catalog — products of every status, with
+// their variants. Product already carries everything the table/drawer needs
+// (variants hold price/stock/compareAt), so it's just a Product with all
+// statuses, not only published ones.
+export type AdminProduct = Product;
+
+// Read via the user-scoped (RLS) client on purpose: the `products_member_all`
+// policy already lets a business member see every one of their own products
+// regardless of status — no service role needed for the read.
+export async function getProductsForAdmin(businessId: string): Promise<AdminProduct[]> {
+  if (!hasSupabaseEnv()) return [];
+  const supabase = await getServerSupabase();
+  const { data } = await supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("business_id", businessId)
+    .order("created_at", { ascending: false });
+
+  return ((data ?? []) as Record<string, unknown>[]).map(mapProduct);
+}
+
+export interface AdminCategoryRow {
+  id: string;
+  name: string;
+  slug: string;
+  parentId: string | null;
+  heroKicker: string | null;
+  heroHeadline: string | null;
+  heroBg: string | null;
+}
+
+// The Stage Manager's category picker — every category (not just featured
+// ones), so the admin can tune any category's Stage copy.
+export async function getCategoriesForAdmin(businessId: string): Promise<AdminCategoryRow[]> {
+  if (!hasSupabaseEnv()) return [];
+  const supabase = await getServerSupabase();
+  const { data } = await supabase
+    .from("categories")
+    .select("id, name, slug, parent_id, hero_kicker, hero_headline, hero_bg")
+    .eq("business_id", businessId)
+    .order("position", { ascending: true });
+
+  return ((data ?? []) as Record<string, unknown>[]).map((c) => ({
+    id: String(c.id),
+    name: String(c.name),
+    slug: String(c.slug),
+    parentId: c.parent_id as string | null,
+    heroKicker: c.hero_kicker as string | null,
+    heroHeadline: c.hero_headline as string | null,
+    heroBg: c.hero_bg as string | null,
+  }));
+}
+
+export interface FeaturedCategoryBlock {
+  category: CategoryRef;
+  hero: CategoryHero;
+  products: Product[];
+}
+
+// The "Grand Gallery" Shop page: one bento block per featured category, in
+// curated order. A category becomes a block just by flagging `is_featured`
+// on its row — no separate table, no code change per tenant.
+export async function getFeaturedCategoriesWithProducts(
+  businessId: string,
+): Promise<FeaturedCategoryBlock[]> {
+  if (!hasSupabaseEnv()) return demoFeaturedCategoriesWithProducts();
+  const supabase = await getServerSupabase();
+
+  const { data: cats } = await supabase
+    .from("categories")
+    .select("id, name, slug, hero_kicker, hero_headline, hero_bg, hero_image_url, featured_rank")
+    .eq("business_id", businessId)
+    .eq("is_featured", true)
+    .order("featured_rank", { ascending: true });
+
+  const featured = (cats ?? []) as {
+    id: string;
+    name: string;
+    slug: string;
+    hero_kicker: string | null;
+    hero_headline: string | null;
+    hero_bg: string | null;
+    hero_image_url: string | null;
+    featured_rank: number | null;
+  }[];
+
+  if (featured.length === 0) return [];
+
+  const blocks = await Promise.all(
+    featured.map(async (c) => {
+      const { data } = await supabase
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("business_id", businessId)
+        .eq("status", "published")
+        .eq("category_id", c.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      const products = ((data ?? []) as Record<string, unknown>[]).map(mapProduct);
+      return {
+        category: { id: c.id, name: c.name, slug: c.slug },
+        hero: {
+          kicker: c.hero_kicker,
+          headline: c.hero_headline,
+          bg: c.hero_bg,
+          imageUrl: c.hero_image_url,
+        },
+        products,
+      };
+    }),
+  );
+
+  return blocks.filter((b) => b.products.length > 0);
 }

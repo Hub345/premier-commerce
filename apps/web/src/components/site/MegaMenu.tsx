@@ -39,16 +39,30 @@ export function MegaMenu({ tree }: { tree: NavNode[] }) {
         onMouseEnter={clearClose}
         onMouseLeave={scheduleClose}
       >
-        <ul className="flex items-center gap-1">
+        {/* overflow-x-auto + shrink-0/whitespace-nowrap on every pill: labels
+            never wrap mid-word, they scroll instead — this has to hold for
+            any tenant's category names, not just Bizrah's. */}
+        <ul className="no-scrollbar flex items-center gap-2 overflow-x-auto">
+          <li className="shrink-0">
+            {/* "Shop" is the master entry point — same fixed gutter/hit-area
+                as every category pill, but a touch heavier to read as the
+                anchor of the row rather than one more sibling. */}
+            <Link
+              href="/shop"
+              className="block whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink"
+            >
+              Shop
+            </Link>
+          </li>
           {tree.map((node) => (
-            <li key={node.id} onMouseEnter={() => open(node.id)}>
+            <li key={node.id} className="shrink-0" onMouseEnter={() => open(node.id)}>
               {/* Top-level label is a real destination: click = go to the Stage. */}
               <Link
                 href={`/category/${node.slug}`}
                 onClick={closeNow}
                 onFocus={() => open(node.id)}
                 aria-expanded={active === node.id}
-                className={`block rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                className={`block whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                   active === node.id ? "text-ink" : "text-ink-soft hover:text-ink"
                 }`}
               >
@@ -134,6 +148,13 @@ export function MegaMenu({ tree }: { tree: NavNode[] }) {
             transition={{ duration: 0.15 }}
             className="absolute inset-x-0 top-full z-40 max-h-[70vh] overflow-y-auto border-b border-line bg-surface p-4 md:hidden"
           >
+            <Link
+              href="/shop"
+              onClick={() => setMobileOpen(false)}
+              className="block border-b border-line py-3 text-sm font-semibold"
+            >
+              Shop
+            </Link>
             {tree.map((node) => (
               <div key={node.id} className="border-b border-line py-3 last:border-0">
                 <Link

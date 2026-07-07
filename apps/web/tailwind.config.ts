@@ -2,6 +2,10 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
+  // The Command Center's "Aura" toggle drives dark/light via a class on <html>
+  // (next-themes). The storefront has no `dark:` rules and is themed with CSS
+  // vars, so this class never affects it — only the admin surface responds.
+  darkMode: "class",
   theme: {
     extend: {
       colors: {

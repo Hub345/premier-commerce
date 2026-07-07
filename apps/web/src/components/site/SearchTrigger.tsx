@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Product } from "@premier/protocol";
 import { formatMoney } from "@premier/protocol";
@@ -12,7 +13,13 @@ interface Hit {
   score: number;
 }
 
+// The Command Center's hidden door — just discovery, not the security
+// boundary. What's behind /admin is gated by real auth + business
+// membership, not by knowing this phrase.
+const ADMIN_PHRASE = "administrator control";
+
 export function SearchTrigger() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [term, setTerm] = useState("");
@@ -106,6 +113,13 @@ export function SearchTrigger() {
                         ref={inputRef}
                         value={term}
                         onChange={(e) => setTerm(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && term.trim().toLowerCase() === ADMIN_PHRASE) {
+                            e.preventDefault();
+                            setOpen(false);
+                            router.push("/admin");
+                          }
+                        }}
                         placeholder="Search products…"
                         className="w-full bg-transparent text-sm outline-none placeholder:text-ink-muted"
                       />

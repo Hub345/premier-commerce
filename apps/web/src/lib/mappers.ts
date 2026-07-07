@@ -1,7 +1,7 @@
 // Translate snake_case database rows into the camelCase protocol types.
 // One direction, in one place, so the wire shape stays stable.
 
-import type { Business, Product, ProductVariant } from "@premier/protocol";
+import type { Business, BusinessBenefit, FontChoice, Product, ProductVariant } from "@premier/protocol";
 
 type Row = Record<string, unknown>;
 
@@ -9,8 +9,21 @@ function str(v: unknown): string | null {
   return typeof v === "string" ? v : null;
 }
 
+const FONT_CHOICES: FontChoice[] = ["geist", "inter", "playfair"];
+function fontChoice(v: unknown): FontChoice | null {
+  return typeof v === "string" && (FONT_CHOICES as string[]).includes(v) ? (v as FontChoice) : null;
+}
+
+function benefitsList(v: unknown): BusinessBenefit[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .filter((b): b is Row => typeof b === "object" && b !== null)
+    .map((b) => ({ title: String(b.title ?? ""), copy: String(b.copy ?? "") }));
+}
+
 export function mapBusiness(row: Row): Business {
   const branding = (row.branding ?? {}) as Row;
+  const contact = (row.contact ?? {}) as Row;
   return {
     id: String(row.id),
     slug: String(row.slug),
@@ -21,10 +34,20 @@ export function mapBusiness(row: Row): Business {
       faviconUrl: str(branding.faviconUrl),
       accent: str(branding.accent),
       primary: str(branding.primary),
+      fontFamily: fontChoice(branding.fontFamily),
       tagline: str(branding.tagline),
       heroHeadline: str(branding.heroHeadline),
       heroSubcopy: str(branding.heroSubcopy),
     },
+    contact: {
+      phone: str(contact.phone),
+      email: str(contact.email),
+      facebookUrl: str(contact.facebookUrl),
+      instagramUrl: str(contact.instagramUrl),
+      youtubeUrl: str(contact.youtubeUrl),
+      xUrl: str(contact.xUrl),
+    },
+    benefits: benefitsList(row.benefits),
     vat: {
       enabled: Boolean(row.vat_enabled),
       rate: Number(row.vat_rate ?? 0),

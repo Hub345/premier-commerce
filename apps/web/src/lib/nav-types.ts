@@ -7,6 +7,9 @@ export interface NavChild {
   slug: string;
 }
 
+// Recursive: a category tree can be any depth (e.g. Phones > Smartphones >
+// Samsung), not just two levels. Existing code that only reads id/name/slug
+// off a child (the flat NavChild shape) keeps working unchanged.
 export interface NavNode extends NavChild {
-  children: NavChild[];
+  children: NavNode[];
 }

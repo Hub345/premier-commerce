@@ -37,7 +37,10 @@ additional_redirect_urls = ["http://localhost:3000"]
 jwt_expiry = 3600
 enable_signup = true
 
+# Disabled until real Google OAuth credentials exist (see ROADMAP.md).
+# To enable: set enabled = true and export SUPABASE_AUTH_GOOGLE_CLIENT_ID /
+# SUPABASE_AUTH_GOOGLE_SECRET in your shell before `supabase start`.
 [auth.external.google]
-enabled = true
+enabled = false
 client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"

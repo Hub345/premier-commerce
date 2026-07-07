@@ -17,6 +17,9 @@ export interface VatConfig {
   registrationNumber: string | null;
 }
 
+/** One of a fixed, preloaded set — not an arbitrary font-family string. */
+export type FontChoice = "geist" | "inter" | "playfair";
+
 export interface BusinessBranding {
   logoUrl: string | null;
   faviconUrl: string | null;
@@ -24,9 +27,24 @@ export interface BusinessBranding {
   accent: string | null;
   /** Hex primary color used for primary CTAs, e.g. "#161613" or "#A50034". */
   primary: string | null;
+  fontFamily: FontChoice | null;
   tagline: string | null;
   heroHeadline: string | null;
   heroSubcopy: string | null;
+}
+
+export interface BusinessBenefit {
+  title: string;
+  copy: string;
+}
+
+export interface BusinessContact {
+  phone: string | null;
+  email: string | null;
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
+  xUrl: string | null;
 }
 
 export interface Business {
@@ -35,6 +53,8 @@ export interface Business {
   name: string;
   currency: CurrencyCode;
   branding: BusinessBranding;
+  contact: BusinessContact;
+  benefits: BusinessBenefit[];
   vat: VatConfig;
   status: "active" | "suspended";
 }
