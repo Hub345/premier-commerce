@@ -142,8 +142,39 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
       image mime-types only; no RLS read policy needed (public buckets serve
       GETs directly, bypassing RLS) and no write policy needed (uploads only
       ever go through the service-role API route, never client-direct).
-  - **Explicitly still deferred:** Archetype 1 "Glass Cockpit" (real-time
-    analytics/websockets/traffic map) — its own phase-scale project.
+  - **Pulse — the "Glass Cockpit" (Archetype 01, added 2026-07-10):** the
+    Command Center's default landing view, and the fourth (final) archetype
+    to ship. A vital-signs dashboard built **entirely on data the platform
+    already records** — no synthesized numbers. `getPulseMetrics(businessId)`
+    (`lib/pulse.ts`, service-role, every query manually scoped by
+    `business_id`; `order_items` scoped via an inner join on its order since
+    it has no `business_id` column) aggregates five real signals: **sales**
+    (gross/paid/30-day revenue, order + paid-order counts, avg order value,
+    a 14-day realized-revenue trend, orders-by-status, recent-orders feed,
+    top-products by revenue from `order_items`), **customers** (total, with
+    an account, last-30-day), **inventory** (total units, retail value =
+    Σ stock×price, low-stock + out-of-stock counts, and a low-stock
+    watchlist), and **catalog** (products by status + variant count).
+    `Pulse.tsx` is a purely presentational client component (KPI cards, an
+    inline-SVG revenue sparkline — no chart library, an orders-by-status
+    breakdown, recent-orders and low-stock lists, top-products, a catalog
+    snapshot) styled to match the rest of the admin (Aura light/dark).
+    **The honesty principle carries through:** with no orders yet (M-Pesa
+    isn't live), the revenue/orders sections show real zeros with explicit
+    empty states ("No sales yet — this chart fills in the moment your first
+    M-Pesa order settles") rather than fake demo curves, while inventory,
+    customers, and catalog show real numbers **right now**. **Verified live
+    end-to-end** against the real DB (throwaway owner account, signed in
+    through the actual UI): inventory value Ksh 14,235,689.00 / 311 units,
+    14 variants, 10 published products, 1 customer — every figure matched a
+    direct SQL aggregate; empty states and dark mode both confirmed; test
+    account fully cleaned up after.
+  - **Explicitly still deferred (the one piece Pulse doesn't cover):**
+    web-traffic & audience analytics — visitors, sessions, traffic sources,
+    the geo-IP traffic map, realtime websocket visitor counts. These need a
+    dedicated event-ingestion pipeline (client beacon → events table →
+    rollups) that doesn't exist yet, so Pulse says so in a footnote rather
+    than estimating. That pipeline is the clear next phase for the cockpit.
   - **Team — owner-invite flow (Phase A's real deliverable, added
     2026-07-10):** an owner-only 4th Command Center tab. No email-sending
     infra exists (Supabase's shared SMTP is rate-limited — see below), so

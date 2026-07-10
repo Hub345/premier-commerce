@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Business } from "@premier/protocol";
 import type { AdminCategoryRow, AdminProduct } from "@/lib/catalog";
 import type { TeamData } from "@/lib/team";
+import type { PulseMetrics } from "@/lib/pulse";
+import { Pulse } from "@/components/admin/Pulse";
 import { ThemeLab } from "@/components/admin/ThemeLab";
 import { AtomicVault } from "@/components/admin/AtomicVault";
 import { TeamManager } from "@/components/admin/TeamManager";
@@ -16,6 +18,7 @@ export function AdminShell({
   categories,
   products,
   team,
+  pulse,
   currentUserId,
   isOwner,
 }: {
@@ -23,15 +26,16 @@ export function AdminShell({
   categories: AdminCategoryRow[];
   products: AdminProduct[];
   team: TeamData;
+  pulse: PulseMetrics;
   currentUserId: string;
   isOwner: boolean;
 }) {
-  const [view, setView] = useState<View>("stage");
+  const [view, setView] = useState<View>("pulse");
 
   // Team management is owner-only (server-enforced in the API routes too —
   // this just keeps a non-owner from seeing a tab they can't use).
   const nav: { id: View; label: string; enabled: boolean }[] = [
-    { id: "pulse", label: "Pulse", enabled: false },
+    { id: "pulse", label: "Pulse", enabled: true },
     { id: "stage", label: "Stage Manager", enabled: true },
     { id: "vault", label: "Atomic Vault", enabled: true },
     ...(isOwner ? [{ id: "team" as View, label: "Team", enabled: true }] : []),
@@ -96,7 +100,9 @@ export function AdminShell({
         </aside>
 
         <main className="flex-1 overflow-y-auto">
-          {view === "stage" ? (
+          {view === "pulse" ? (
+            <Pulse metrics={pulse} currency={business.currency} />
+          ) : view === "stage" ? (
             <ThemeLab business={business} categories={categories} />
           ) : view === "vault" ? (
             <AtomicVault products={products} categories={categories} currency={business.currency} />

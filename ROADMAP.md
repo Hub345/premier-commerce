@@ -86,11 +86,15 @@ go-live. Phases are gated on review, per the project's working style.
   (shown on `/admin`'s access-denied screen) is now only needed to bootstrap
   the very first owner of a business (nobody exists yet to invite them).
   Every subsequent teammate is a real self-service invite from the Team tab.
-- **Command Center — Archetype 1 "Glass Cockpit" only remaining gap** (a real
-  telemetry pipeline: events table, ingestion, realtime dashboard, possibly
-  geo-IP for the traffic map) — its own phase, not started. Archetype 2
+- **Command Center — all four archetypes now built.** Archetype 1 "Glass
+  Cockpit" shipped as **Pulse** (2026-07-10) — a real-data dashboard over
+  sales, inventory, customers, and catalog (see `PROGRESS.md`). Archetype 2
   "Stage Manager" and Archetype 3 "Atomic Vault" (full product CRUD incl.
-  image upload, categories/brands at any depth, variants) are both built.
+  image upload, categories/brands at any depth, variants) were already built.
+  **The one remaining cockpit gap is web-traffic analytics** (visitors,
+  sources, geo-IP traffic map, realtime visitor counts) — deliberately not
+  faked; it needs a dedicated event-ingestion pipeline (client beacon →
+  events table → rollups), which is its own next phase, not started.
 - **Rewards / Favorites / Manage Subscriptions** — routes exist, intentionally
   un-implemented (points ledger, wishlist table, subscription granularity are
   each their own phase).

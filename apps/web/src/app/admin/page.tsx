@@ -1,5 +1,6 @@
 import { getCurrentBusiness } from "@/lib/tenant";
 import { getCategoriesForAdmin, getProductsForAdmin } from "@/lib/catalog";
+import { getPulseMetrics } from "@/lib/pulse";
 import { getSessionUser, isBusinessAdmin, isBusinessOwner } from "@/lib/auth";
 import { getTeamForAdmin, tryAcceptInvite } from "@/lib/team";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -39,12 +40,13 @@ export default async function AdminPage() {
   }
 
   const isOwner = await isBusinessOwner(business.id);
-  const [categories, products, team] = await Promise.all([
+  const [categories, products, team, pulse] = await Promise.all([
     getCategoriesForAdmin(business.id),
     getProductsForAdmin(business.id),
     // Only an owner can see/manage the team — no point fetching it (and
     // resolving every member's email via the admin API) for anyone else.
     isOwner ? getTeamForAdmin(business.id) : Promise.resolve({ members: [], invites: [] }),
+    getPulseMetrics(business.id),
   ]);
 
   return (
@@ -53,6 +55,7 @@ export default async function AdminPage() {
       categories={categories}
       products={products}
       team={team}
+      pulse={pulse}
       currentUserId={user.id}
       isOwner={isOwner}
     />
