@@ -1,6 +1,7 @@
 import { getCurrentBusiness } from "@/lib/tenant";
 import { getCategoriesForAdmin, getProductsForAdmin } from "@/lib/catalog";
-import { getSessionUser, isBusinessAdmin } from "@/lib/auth";
+import { getSessionUser, isBusinessAdmin, isBusinessOwner } from "@/lib/auth";
+import { getTeamForAdmin, tryAcceptInvite } from "@/lib/team";
 import { AdminShell } from "@/components/admin/AdminShell";
 
 export const dynamic = "force-dynamic";
@@ -20,23 +21,42 @@ export default async function AdminPage() {
     );
   }
 
-  const authorized = await isBusinessAdmin(business.id);
+  let authorized = await isBusinessAdmin(business.id);
+  // A teammate invited from the Team tab lands here before ever having a
+  // business_members row — if their email matches a pending invite, grant
+  // membership right now instead of bouncing them to an access-denied screen.
+  if (!authorized) {
+    authorized = await tryAcceptInvite(business.id, user.id, user.email ?? null);
+  }
   if (!authorized) {
     return (
       <AccessNotice
         title="Access restricted"
-        body={`${user.email ?? "This account"} isn't a member of ${business.name} yet. Grant access with the service role (run once, from your own machine — never expose this in client code):`}
+        body={`${user.email ?? "This account"} isn't a member of ${business.name} yet, and no pending invite matches this email. If you're bootstrapping the very first owner, grant access with the service role (run once, from your own machine — never expose this in client code):`}
         sql={`insert into business_members (business_id, profile_id, role)\nvalues ('${business.id}', '${user.id}', 'owner');`}
       />
     );
   }
 
-  const [categories, products] = await Promise.all([
+  const isOwner = await isBusinessOwner(business.id);
+  const [categories, products, team] = await Promise.all([
     getCategoriesForAdmin(business.id),
     getProductsForAdmin(business.id),
+    // Only an owner can see/manage the team — no point fetching it (and
+    // resolving every member's email via the admin API) for anyone else.
+    isOwner ? getTeamForAdmin(business.id) : Promise.resolve({ members: [], invites: [] }),
   ]);
 
-  return <AdminShell business={business} categories={categories} products={products} />;
+  return (
+    <AdminShell
+      business={business}
+      categories={categories}
+      products={products}
+      team={team}
+      currentUserId={user.id}
+      isOwner={isOwner}
+    />
+  );
 }
 
 function AccessNotice({

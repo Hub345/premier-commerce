@@ -3,28 +3,39 @@
 import { useState } from "react";
 import type { Business } from "@premier/protocol";
 import type { AdminCategoryRow, AdminProduct } from "@/lib/catalog";
+import type { TeamData } from "@/lib/team";
 import { ThemeLab } from "@/components/admin/ThemeLab";
 import { AtomicVault } from "@/components/admin/AtomicVault";
+import { TeamManager } from "@/components/admin/TeamManager";
 import { AuraToggle } from "@/components/admin/AuraToggle";
 
-type View = "pulse" | "stage" | "vault";
-
-const NAV: { id: View; label: string; enabled: boolean }[] = [
-  { id: "pulse", label: "Pulse", enabled: false },
-  { id: "stage", label: "Stage Manager", enabled: true },
-  { id: "vault", label: "Atomic Vault", enabled: true },
-];
+type View = "pulse" | "stage" | "vault" | "team";
 
 export function AdminShell({
   business,
   categories,
   products,
+  team,
+  currentUserId,
+  isOwner,
 }: {
   business: Business;
   categories: AdminCategoryRow[];
   products: AdminProduct[];
+  team: TeamData;
+  currentUserId: string;
+  isOwner: boolean;
 }) {
   const [view, setView] = useState<View>("stage");
+
+  // Team management is owner-only (server-enforced in the API routes too —
+  // this just keeps a non-owner from seeing a tab they can't use).
+  const nav: { id: View; label: string; enabled: boolean }[] = [
+    { id: "pulse", label: "Pulse", enabled: false },
+    { id: "stage", label: "Stage Manager", enabled: true },
+    { id: "vault", label: "Atomic Vault", enabled: true },
+    ...(isOwner ? [{ id: "team" as View, label: "Team", enabled: true }] : []),
+  ];
 
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100 [font-family:var(--font-geist-sans),sans-serif]">
@@ -41,7 +52,7 @@ export function AdminShell({
           </div>
 
           <nav className="mt-8 flex flex-col gap-1">
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active = item.id === view;
               return (
                 <button
@@ -89,6 +100,8 @@ export function AdminShell({
             <ThemeLab business={business} categories={categories} />
           ) : view === "vault" ? (
             <AtomicVault products={products} categories={categories} currency={business.currency} />
+          ) : view === "team" && isOwner ? (
+            <TeamManager members={team.members} invites={team.invites} currentUserId={currentUserId} />
           ) : null}
         </main>
       </div>

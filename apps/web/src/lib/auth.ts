@@ -39,6 +39,24 @@ export const isBusinessAdmin = cache(async (businessId: string): Promise<boolean
   return !error && data === true;
 });
 
+// Any member (owner/manager/staff) can use Stage Manager and the Atomic
+// Vault — but Team management (inviting people, changing roles, removing
+// members) is sensitive enough to escalate privilege that it's owner-only.
+// Without this, a "staff" invite could promote themselves to owner or
+// remove the real owner via the Team UI.
+export const isBusinessOwner = cache(async (businessId: string): Promise<boolean> => {
+  const user = await getSessionUser();
+  if (!user) return false;
+  const supabase = await getServerSupabase();
+  const { data } = await supabase
+    .from("business_members")
+    .select("role")
+    .eq("business_id", businessId)
+    .eq("profile_id", user.id)
+    .maybeSingle();
+  return (data as { role: string } | null)?.role === "owner";
+});
+
 export const getCurrentMember = cache(
   async (businessId: string): Promise<Member | null> => {
     const user = await getSessionUser();

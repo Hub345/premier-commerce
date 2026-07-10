@@ -44,7 +44,8 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
   `0008` `businesses.benefits` jsonb for the Command Center's editable
   "Bizrah Promise" cards; `0009` security hardening (revoked public RPC
   execute on `settle_payment`/`handle_new_user`, hardened `search_path`);
-  `0010` `product-images` public Storage bucket for the Atomic Vault.
+  `0010` `product-images` public Storage bucket for the Atomic Vault; `0011`
+  `business_invites` for the Team owner-invite flow.
 - Tenant middleware (Host → `business_id`, stamped server-side, never client).
 - Supabase server (RLS) + service-role clients; service-role discipline documented.
 
@@ -86,13 +87,14 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
     inline-icon convention (see the header's account icon).
   - Header "Home" link (business name → `/`) was already correct pre-existing
     behavior; no change needed.
-- **The Zenith Command Center (`/admin`) 🟡** — hidden "Stage Manager" theme
+- **The Zenith Command Center (`/admin`)** — hidden "Stage Manager" theme
   editor. Discovery is a search-bar Easter egg (type "administrator control" +
   Enter); **the gate itself is real** — Supabase Auth + the existing
-  `is_business_member()` RLS function via RPC, not a hardcoded password. No
-  `business_members` row exists for anyone yet (Phase A owner-onboarding UI
-  isn't built) — `/admin` shows the exact one-line SQL to run to grant
-  yourself access once you've signed up via `/sign-in`.
+  `is_business_member()` RLS function via RPC, not a hardcoded password. A
+  manual one-line SQL insert (shown on the access-denied screen) is still the
+  path to bootstrap the very first owner of a business (there's no one to
+  invite you yet); everyone after that is a real self-service invite — see
+  **Team** below.
   - **Routing restructure:** moved all storefront pages into a
     `(storefront)` route group with its own layout (header/footer); the root
     layout is now bare. `/admin` sits outside that group — no light storefront
@@ -142,6 +144,28 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
       ever go through the service-role API route, never client-direct).
   - **Explicitly still deferred:** Archetype 1 "Glass Cockpit" (real-time
     analytics/websockets/traffic map) — its own phase-scale project.
+  - **Team — owner-invite flow (Phase A's real deliverable, added
+    2026-07-10):** an owner-only 4th Command Center tab. No email-sending
+    infra exists (Supabase's shared SMTP is rate-limited — see below), so
+    invites are self-service on the *invitee's* side instead of a
+    push notification: an owner enters an email + role, which creates a
+    `business_invites` row (migration `0011`); the moment that email signs in
+    and opens `/admin`, `tryAcceptInvite()` matches it, creates their real
+    `business_members` row with the invited role, and marks the invite
+    accepted — no link or token to distribute. Role changes and removal
+    (with a "can't strand a business with zero owners" guard) are in the
+    same tab. **Found and fixed a real privilege-escalation gap during live
+    testing:** the existing `isBusinessAdmin` check only verifies "is *a*
+    member" (any role) — it already gated Stage Manager/Vault access
+    correctly, but reusing it for Team would have let a `staff` invite
+    promote themselves to `owner` or remove the real owner. Added
+    `isBusinessOwner` (checks the actual role) and gate Team's API routes
+    and the tab's visibility on that instead — verified live: a `manager`
+    account can no longer see the Team tab, and a forged direct
+    `POST /api/v1/admin/invite` from that same session now returns 403.
+    Verified the full loop end-to-end against the real DB: owner invites a
+    real second account by email → that account signs in cold (no manual
+    grant) → lands straight in the Command Center with the invited role.
   - **Category tree — any depth, brands included (added 2026-07-07):**
     `categories.parent_id` self-references, so the schema always supported
     unlimited nesting; most of the storefront (breadcrumbs, subcategory pill

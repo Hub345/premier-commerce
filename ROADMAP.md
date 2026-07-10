@@ -6,16 +6,25 @@ go-live. Phases are gated on review, per the project's working style.
 
 ---
 
-## Phase A — Owner access & admin console
+## Phase A — Owner access & admin console ✅ done
 **Goal:** a business owner can sign in and manage their store.
-- Google Sign-In via Supabase Auth; auto-provision `profiles` (trigger exists).
-- Authorization via `business_members` (owner/manager/staff) — decouple auth from
-  membership so multiple staff/roles work later.
-- Minimal admin console (web) scoped to the owner's `business_id`:
-  - Product + variant CRUD, inventory adjustments (writes the `inventory_logs` ledger).
-  - Category + Stage editor (hero headline/gradient/image per category).
-  - Orders list + status updates.
-- **`/api/v1/admin/*`** — versioned endpoints (the Flutter app will consume these).
+- Email/password + Google Sign-In (code path) via Supabase Auth; auto-provision
+  `profiles` (trigger). Apple deferred (needs a paid Developer account).
+- Authorization via `business_members` (owner/manager/staff) — decoupled from
+  auth, so multiple staff/roles work. **Self-service invites** (Team tab,
+  owner-only): invite by email + role, no email sent — the invitee is
+  auto-provisioned the moment they sign in and open `/admin`. Role changes and
+  removal, guarded against stranding a business with zero owners.
+- Admin console (`/admin`, the "Zenith Command Center") scoped to the owner's
+  `business_id`: full product + variant CRUD with image upload (Atomic Vault),
+  category/brand tree management at any depth (Stage Manager), Stage hero
+  editor, theme/wording/benefits/social — all real, all built.
+- **`/api/v1/admin/*`** — versioned endpoints (the Flutter app will consume
+  these later).
+- **Remaining, not done:** an Orders list + status-update view in the admin
+  console (checkout/payments exist; there's no admin-side order management UI
+  yet). Google/Apple OAuth still need real external credentials before they're
+  live (code is ready — see Known follow-ups).
 
 ## Phase B — Media
 **Goal:** real imagery replaces initials/fallbacks.
@@ -65,10 +74,10 @@ go-live. Phases are gated on review, per the project's working style.
 - **Member orders aren't linked yet** — checkout still keys by phone; a
   signed-in member's `customers` row isn't attached to the order they place.
   Needed before `/account/orders` can show real history instead of "coming soon".
-- **No `business_members` rows exist yet** — Phase A's owner-onboarding UI
-  (invite/assign staff) isn't built, so `/admin` currently requires a manual
-  one-line SQL insert (shown on the access-denied screen) to grant the first
-  owner. Building that invite flow is the real deliverable of Phase A.
+- **Owner-invite flow — done (2026-07-10).** The manual one-line SQL insert
+  (shown on `/admin`'s access-denied screen) is now only needed to bootstrap
+  the very first owner of a business (nobody exists yet to invite them).
+  Every subsequent teammate is a real self-service invite from the Team tab.
 - **Command Center — Archetype 1 "Glass Cockpit" only remaining gap** (a real
   telemetry pipeline: events table, ingestion, realtime dashboard, possibly
   geo-IP for the traffic map) — its own phase, not started. Archetype 2
