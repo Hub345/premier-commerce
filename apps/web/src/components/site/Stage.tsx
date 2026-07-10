@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ZenithEditable, useZenithEditMode } from "@/components/site/ZenithEditable";
+
+export interface StageEditConfig {
+  scope: "business" | "category";
+  /** Required when scope is "category" — identifies which row to PATCH. */
+  categoryId?: string;
+}
 
 export interface StageProps {
   /** Changes per category so Framer Motion replays the "scene change". */
@@ -14,6 +21,8 @@ export interface StageProps {
   imageUrl?: string | null;
   /** Flagship product name, shown on the fallback plinth. */
   flagship?: string | null;
+  /** Present only when rendered inside the admin's live preview. */
+  edit?: StageEditConfig;
 }
 
 const DEFAULT_BG = "linear-gradient(180deg,#FBFAF7,#F1EEE8)";
@@ -27,7 +36,10 @@ export function Stage({
   bg,
   imageUrl,
   flagship,
+  edit,
 }: StageProps) {
+  const editing = useZenithEditMode();
+  const meta = edit?.categoryId ? { categoryId: edit.categoryId } : undefined;
   const initials = (flagship ?? kicker)
     .split(" ")
     .filter(Boolean)
@@ -41,6 +53,23 @@ export function Stage({
       className="relative overflow-hidden border-b border-line"
       style={{ background: bg || DEFAULT_BG }}
     >
+      {editing && edit?.scope === "category" ? (
+        <div className="absolute right-4 top-4 z-30">
+          <ZenithEditable
+            payload={{
+              scope: edit.scope,
+              field: "heroBg",
+              label: "Background",
+              kind: "gradient",
+              value: bg ?? null,
+              meta,
+            }}
+          >
+            <span className="block h-8 w-8 rounded-full border border-line shadow-soft" style={{ background: bg || DEFAULT_BG }} />
+          </ZenithEditable>
+        </div>
+      ) : null}
+
       <div className="mx-auto grid min-h-[58vh] max-w-6xl items-center gap-8 px-6 py-16 lg:grid-cols-2">
         <motion.div
           key={`${sceneKey}-text`}
@@ -48,12 +77,37 @@ export function Stage({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <p className="font-mono text-xs uppercase tracking-[0.24em] text-ink-muted">
-            {kicker}
-          </p>
-          <h1 className="mt-4 text-balance text-5xl font-bold leading-[0.95] tracking-[-0.035em] sm:text-6xl lg:text-[5rem]">
-            {headline}
-          </h1>
+          {editing && edit?.scope === "category" ? (
+            <ZenithEditable
+              payload={{ scope: edit.scope, field: "heroKicker", label: "Kicker", kind: "text", value: kicker, meta }}
+            >
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-ink-muted">{kicker}</p>
+            </ZenithEditable>
+          ) : (
+            <p className="font-mono text-xs uppercase tracking-[0.24em] text-ink-muted">{kicker}</p>
+          )}
+
+          {editing ? (
+            <ZenithEditable
+              className="mt-4 block"
+              payload={{
+                scope: edit!.scope,
+                field: "heroHeadline",
+                label: "Headline",
+                kind: "text",
+                value: headline,
+                meta,
+              }}
+            >
+              <h1 className="text-balance text-5xl font-bold leading-[0.95] tracking-[-0.035em] sm:text-6xl lg:text-[5rem]">
+                {headline}
+              </h1>
+            </ZenithEditable>
+          ) : (
+            <h1 className="mt-4 text-balance text-5xl font-bold leading-[0.95] tracking-[-0.035em] sm:text-6xl lg:text-[5rem]">
+              {headline}
+            </h1>
+          )}
           <Link
             href={ctaHref}
             className="mt-9 inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03]"
@@ -77,6 +131,15 @@ export function Stage({
             className="absolute h-72 w-72 rounded-full opacity-40 blur-3xl"
             style={{ background: "var(--accent)" }}
           />
+          {editing && edit?.scope === "category" ? (
+            <div className="absolute right-4 top-4 z-30">
+              <ZenithEditable
+                payload={{ scope: edit.scope, field: "heroImageUrl", label: "Image", kind: "image", value: imageUrl ?? null, meta }}
+              >
+                <span className="block h-8 w-8 rounded-full border border-line bg-white shadow-soft" />
+              </ZenithEditable>
+            </div>
+          ) : null}
           {imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

@@ -199,6 +199,70 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
       data now supports it, but redesigning the flyout for a 3rd visual tier
       is its own follow-up. Brands are still fully reachable today via a
       category's existing subcategory-pill row on its own page.
+  - **Inline visual editor — "click the live site to edit it" (added
+    2026-07-10):** the user's own scoping decision on a much larger
+    "Visual Architect" brief (full Hostinger/Gutenberg-style JSON-driven
+    drag-and-drop builder with an Observer Architecture, Contextual HUD,
+    alignment engine, and undo/redo) — offered as two options, and the
+    smaller one was explicitly chosen: inline editing of *existing* fields
+    through the *existing* API routes/data model, not a new `layout_json`
+    schema or block renderer. What shipped:
+    - **`ZenithEditable`** (`components/site/ZenithEditable.tsx`) — a
+      storefront-side wrapper that, only when rendered inside the admin's
+      live-preview iframe (signaled by a `?__zenith_edit=1` query param real
+      visitors never carry), draws a small hover pencil button pinned to a
+      content element's corner rather than making the content itself
+      clickable — deliberate, so it never hijacks clicks on nested
+      `<Link>`s. Clicking it `postMessage`s an edit request to
+      `window.parent`.
+    - **`EditHud`** (`components/admin/EditHud.tsx`) — lives in the parent
+      admin page (Stage Manager), listens for that `postMessage` (origin-
+      checked), and shows a floating panel (text/textarea/gradient/image
+      input depending on field) whose Apply button `PATCH`es the *same*
+      `/api/v1/admin/theme` (business scope) or `/api/v1/admin/category`
+      (category scope) routes the sidebar forms already used — a new entry
+      point onto existing infrastructure, not a new one.
+    - Wired into `Stage.tsx`'s kicker/headline/background-gradient/image —
+      home page uses business scope, every category page uses category
+      scope (`heroKicker`/`heroHeadline`/`heroBg`/`heroImageUrl`, matching
+      the existing Stage Manager fields one-for-one).
+    - **Home/Shop preview switcher + category-linked preview:** Stage
+      Manager's live-preview iframe now carries `__zenith_edit=1` always,
+      toggles between `/` and `/shop`, and follows whichever category is
+      selected in the Categories section — so the pencils are reachable for
+      every editable Stage without leaving the sidebar.
+    - **Grand Gallery reorder** (`components/admin/FeaturedReorder.tsx`) —
+      a `@dnd-kit` sortable list *in the sidebar* (not on the live preview:
+      true cross-iframe drag targets aren't something dnd-kit/native drag
+      support across a frame boundary), dropping PATCHes every reordered
+      category's `featured_rank` in parallel.
+    - **Explicitly deferred** (the larger option the user didn't pick):
+      no `layout_json`/block schema, no section drag-and-drop/reordering
+      beyond the Grand Gallery list, no alignment/flex-grid engine, no
+      video backgrounds, no undo/redo or snapshot/"Nuclear Reset", no
+      Hostinger-style "N/7 setup" progress checklist or Add-Section
+      template gallery, no rich-text/Slate.js editing (plain text/textarea
+      only, matching what the underlying fields already store).
+    - **Bug caught in code review before testing:** the background-gradient
+      pencil was initially wired to render on both business and category
+      scope, but `/api/v1/admin/theme` has no `heroBg` field — Apply would
+      have returned a false-success `200` while silently changing nothing
+      on the home page. Fixed by scoping it to category-only, matching the
+      kicker/image pencils.
+    - **Verified live end-to-end against the real DB**, both scopes: business-
+      scope headline edit via the home page Stage (confirmed in
+      `businesses.branding->>'heroHeadline'`), category-scope kicker edit
+      via the Televisions category Stage (confirmed in
+      `categories.hero_kicker`) — the same `EditHud.apply()` code path
+      handles all four Stage fields per scope, so one field per scope
+      exercising the mechanism stands in for all four (the route's field
+      mapping was also read directly to confirm all four are wired, not
+      just the one tested). `featuredRank` reordering verified by PATCHing
+      it directly and confirming the DB order (dnd-kit's own pointer-drag
+      mechanics were not re-tested — a mature third-party library, and
+      synthetic `PointerEvent`s can't fake real browser pointer capture).
+      All test data (a throwaway owner account, test field values, test
+      rank) was reverted/deleted after verification.
 - **Product detail** — variant picker, per-variant price, stock, VAT breakdown.
 - **Collections carousel** — reusable scroll-snap carousel (arrows, dots, autoplay).
 - **The Grand Gallery (`/shop`)** — a curated, story-first scroll: one Bento

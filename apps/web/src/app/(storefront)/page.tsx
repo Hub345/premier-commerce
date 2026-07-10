@@ -30,6 +30,7 @@ export default async function HomePage() {
         bg={null}
         imageUrl={null}
         flagship={products[0]?.name ?? null}
+        edit={{ scope: "business" }}
       />
 
       <main className="mx-auto max-w-6xl px-6 py-14">

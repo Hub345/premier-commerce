@@ -74,6 +74,14 @@ go-live. Phases are gated on review, per the project's working style.
 - **Member orders aren't linked yet** — checkout still keys by phone; a
   signed-in member's `customers` row isn't attached to the order they place.
   Needed before `/account/orders` can show real history instead of "coming soon".
+- **Inline visual editor — done (2026-07-10).** Click-to-edit pencils on the
+  live Stage preview (kicker/headline/background/image, home + every
+  category) plus a sidebar drag-to-reorder for the Grand Gallery — see
+  `PROGRESS.md` for the full writeup. This was the deliberately-scoped-down
+  half of a much larger "full JSON-driven drag-and-drop builder" request;
+  that larger option (block schema, alignment engine, undo/redo, setup
+  checklist) remains undone and unscoped — would need its own design pass
+  if ever revisited.
 - **Owner-invite flow — done (2026-07-10).** The manual one-line SQL insert
   (shown on `/admin`'s access-denied screen) is now only needed to bootstrap
   the very first owner of a business (nobody exists yet to invite them).

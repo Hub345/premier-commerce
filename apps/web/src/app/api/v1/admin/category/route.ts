@@ -11,6 +11,8 @@ const schema = z.object({
   heroKicker: z.string().max(60).optional(),
   heroHeadline: z.string().max(120).optional(),
   heroBg: z.string().max(400).optional(),
+  heroImageUrl: z.string().url().nullable().optional(),
+  featuredRank: z.number().int().min(0).optional(),
 });
 
 export async function PATCH(request: Request) {
@@ -35,6 +37,8 @@ export async function PATCH(request: Request) {
   if (fields.heroKicker !== undefined) update.hero_kicker = fields.heroKicker;
   if (fields.heroHeadline !== undefined) update.hero_headline = fields.heroHeadline;
   if (fields.heroBg !== undefined) update.hero_bg = fields.heroBg;
+  if (fields.heroImageUrl !== undefined) update.hero_image_url = fields.heroImageUrl;
+  if (fields.featuredRank !== undefined) update.featured_rank = fields.featuredRank;
 
   const service = getServiceSupabase();
   const { error } = await service

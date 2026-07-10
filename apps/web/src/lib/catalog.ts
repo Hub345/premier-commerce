@@ -241,6 +241,9 @@ export interface AdminCategoryRow {
   heroKicker: string | null;
   heroHeadline: string | null;
   heroBg: string | null;
+  heroImageUrl: string | null;
+  isFeatured: boolean;
+  featuredRank: number | null;
 }
 
 // The Stage Manager's category picker — every category (not just featured
@@ -250,7 +253,9 @@ export async function getCategoriesForAdmin(businessId: string): Promise<AdminCa
   const supabase = await getServerSupabase();
   const { data } = await supabase
     .from("categories")
-    .select("id, name, slug, parent_id, hero_kicker, hero_headline, hero_bg")
+    .select(
+      "id, name, slug, parent_id, hero_kicker, hero_headline, hero_bg, hero_image_url, is_featured, featured_rank",
+    )
     .eq("business_id", businessId)
     .order("position", { ascending: true });
 
@@ -262,6 +267,9 @@ export async function getCategoriesForAdmin(businessId: string): Promise<AdminCa
     heroKicker: c.hero_kicker as string | null,
     heroHeadline: c.hero_headline as string | null,
     heroBg: c.hero_bg as string | null,
+    heroImageUrl: c.hero_image_url as string | null,
+    isFeatured: Boolean(c.is_featured),
+    featuredRank: c.featured_rank as number | null,
   }));
 }
 

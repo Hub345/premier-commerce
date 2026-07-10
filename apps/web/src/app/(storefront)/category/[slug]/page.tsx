@@ -61,6 +61,7 @@ export default async function CategoryPage({
         bg={hero?.bg}
         imageUrl={hero?.imageUrl}
         flagship={products[0]?.name ?? null}
+        edit={{ scope: "category", categoryId: category.id }}
       />
 
       <main className="mx-auto max-w-6xl px-6 py-8">

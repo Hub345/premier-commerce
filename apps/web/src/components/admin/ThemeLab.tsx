@@ -7,6 +7,10 @@ import type { Business, BusinessBenefit, FontChoice } from "@premier/protocol";
 import type { AdminCategoryRow } from "@/lib/catalog";
 import { orderCategoriesByTree } from "@/lib/category-tree";
 import { LivePreviewFrame, type LivePreviewHandle } from "@/components/admin/LivePreviewFrame";
+import { EditHud } from "@/components/admin/EditHud";
+import { FeaturedReorder } from "@/components/admin/FeaturedReorder";
+
+const EDIT_QS = "?__zenith_edit=1";
 
 type SyncState = "idle" | "saving" | "synced" | "error";
 
@@ -71,6 +75,13 @@ export function ThemeLab({
   const skipFirst = useRef(true);
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const router = useRouter();
+  const [previewPath, setPreviewPath] = useState(`/${EDIT_QS}`);
+
+  function refreshEverything() {
+    previewRef.current?.refresh();
+    router.refresh();
+  }
 
   useEffect(() => {
     if (skipFirst.current) {
@@ -256,7 +267,19 @@ export function ThemeLab({
           </div>
         </Section>
 
-        {categories.length > 0 ? <CategoryStageEditor categories={categories} previewRef={previewRef} /> : null}
+        {categories.length > 0 ? (
+          <CategoryStageEditor
+            categories={categories}
+            previewRef={previewRef}
+            onPreviewCategory={(slug) => setPreviewPath(`/category/${slug}${EDIT_QS}`)}
+          />
+        ) : null}
+
+        {categories.some((c) => c.isFeatured) ? (
+          <Section title="Grand Gallery order">
+            <FeaturedReorder categories={categories} onSaved={refreshEverything} />
+          </Section>
+        ) : null}
 
         <Section title="System">
           {!confirmReset ? (
@@ -295,8 +318,35 @@ export function ThemeLab({
         </Section>
       </div>
 
-      <div className="h-full">
-        <LivePreviewFrame ref={previewRef} path="/" />
+      <div className="relative flex h-full flex-col gap-2">
+        <div className="flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => setPreviewPath(`/${EDIT_QS}`)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              previewPath.startsWith("/?") || previewPath === "/"
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950"
+                : "border border-zinc-300 text-zinc-500 hover:text-zinc-800 dark:border-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            Home
+          </button>
+          <button
+            type="button"
+            onClick={() => setPreviewPath(`/shop${EDIT_QS}`)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              previewPath.startsWith("/shop")
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950"
+                : "border border-zinc-300 text-zinc-500 hover:text-zinc-800 dark:border-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            Shop
+          </button>
+        </div>
+        <div className="relative flex-1">
+          <LivePreviewFrame ref={previewRef} path={previewPath} />
+          <EditHud onSaved={refreshEverything} />
+        </div>
       </div>
     </div>
   );
@@ -314,14 +364,24 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function CategoryStageEditor({
   categories,
   previewRef,
+  onPreviewCategory,
 }: {
   categories: AdminCategoryRow[];
   previewRef: RefObject<LivePreviewHandle | null>;
+  onPreviewCategory: (slug: string) => void;
 }) {
   const router = useRouter();
   const ordered = orderCategoriesByTree(categories);
   const [selectedId, setSelectedId] = useState(categories[0]?.id ?? "");
   const selected = categories.find((c) => c.id === selectedId) ?? categories[0];
+
+  // Show the category actually being edited in the live preview, not
+  // whatever page it happened to be showing before.
+  useEffect(() => {
+    if (selected) onPreviewCategory(selected.slug);
+    // Only on mount / when the selection changes — not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.slug]);
 
   const [kicker, setKicker] = useState(selected?.heroKicker ?? "");
   const [headline, setHeadline] = useState(selected?.heroHeadline ?? "");
