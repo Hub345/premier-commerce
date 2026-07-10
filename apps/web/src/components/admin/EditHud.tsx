@@ -29,9 +29,10 @@ export function EditHud({ onSaved }: { onSaved: () => void }) {
     return () => window.removeEventListener("message", onMessage);
   }, []);
 
-  async function apply(overrideValue?: string) {
+  // Default arg (not ??) so an explicit null — "remove this media" — is sent
+  // through as null rather than collapsing back to the current value.
+  async function apply(finalValue: string | null = value) {
     if (!edit) return;
-    const finalValue = overrideValue ?? value;
     setSaving(true);
     try {
       const res =
@@ -64,6 +65,8 @@ export function EditHud({ onSaved }: { onSaved: () => void }) {
     try {
       const form = new FormData();
       form.append("file", file);
+      // Background media (image or video) goes to the larger site-media bucket.
+      if (edit.kind === "media") form.append("kind", "background");
       const res = await fetch("/api/v1/admin/upload", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error();
@@ -95,11 +98,15 @@ export function EditHud({ onSaved }: { onSaved: () => void }) {
       </div>
       <p className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{edit.label}</p>
 
-      {edit.kind === "image" ? (
+      {edit.kind === "image" || edit.kind === "media" ? (
         <div>
           {edit.value ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={edit.value} alt="" className="mb-2 h-20 w-full rounded-lg object-cover" />
+            edit.kind === "media" && /\.(mp4|webm)$/i.test(edit.value) ? (
+              <video src={edit.value} muted loop autoPlay playsInline className="mb-2 h-24 w-full rounded-lg object-cover" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={edit.value} alt="" className="mb-2 h-24 w-full rounded-lg object-cover" />
+            )
           ) : null}
           <button
             type="button"
@@ -107,9 +114,29 @@ export function EditHud({ onSaved }: { onSaved: () => void }) {
             disabled={saving}
             className="w-full rounded-lg border border-dashed border-zinc-400 py-3 text-xs text-zinc-500 hover:border-zinc-600 disabled:opacity-50 dark:border-zinc-700"
           >
-            {saving ? "Uploading…" : "Upload image"}
+            {saving ? "Uploading…" : edit.kind === "media" ? "Upload image / video" : "Upload image"}
           </button>
-          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={(e) => handleImageUpload(e.target.files)} />
+          {edit.kind === "media" && edit.value ? (
+            <button
+              type="button"
+              onClick={() => apply(null)}
+              disabled={saving}
+              className="mt-2 w-full rounded-lg border border-zinc-300 py-2 text-xs text-zinc-600 hover:border-zinc-400 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300"
+            >
+              Remove background
+            </button>
+          ) : null}
+          <input
+            ref={fileRef}
+            type="file"
+            accept={
+              edit.kind === "media"
+                ? "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                : "image/jpeg,image/png,image/webp,image/gif"
+            }
+            hidden
+            onChange={(e) => handleImageUpload(e.target.files)}
+          />
         </div>
       ) : edit.kind === "textarea" || edit.kind === "gradient" ? (
         <textarea
@@ -123,7 +150,7 @@ export function EditHud({ onSaved }: { onSaved: () => void }) {
         <input value={value} onChange={(ev) => setValue(ev.target.value)} className={inputClass} autoFocus />
       )}
 
-      {edit.kind !== "image" ? (
+      {edit.kind !== "image" && edit.kind !== "media" ? (
         <div className="mt-3 flex gap-2">
           <button
             type="button"

@@ -1,6 +1,7 @@
 import { getCurrentBusiness } from "@/lib/tenant";
 import { getCategoriesForAdmin, getProductsForAdmin } from "@/lib/catalog";
 import { getPulseMetrics } from "@/lib/pulse";
+import { getSetupProgress } from "@/lib/setup";
 import { getSessionUser, isBusinessAdmin, isBusinessOwner } from "@/lib/auth";
 import { getTeamForAdmin, tryAcceptInvite } from "@/lib/team";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -48,6 +49,9 @@ export default async function AdminPage() {
     isOwner ? getTeamForAdmin(business.id) : Promise.resolve({ members: [], invites: [] }),
     getPulseMetrics(business.id),
   ]);
+  // Depends on the categories/products just fetched, so it runs after — its
+  // only extra DB hit is the one M-Pesa-config lookup.
+  const setup = await getSetupProgress(business.id, business, categories, products);
 
   return (
     <AdminShell
@@ -56,6 +60,7 @@ export default async function AdminPage() {
       products={products}
       team={team}
       pulse={pulse}
+      setup={setup}
       currentUserId={user.id}
       isOwner={isOwner}
     />

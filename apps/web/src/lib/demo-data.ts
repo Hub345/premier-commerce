@@ -27,6 +27,7 @@ export const demoBusiness: Business = {
     tagline: ZENITH_DEFAULTS.tagline,
     heroHeadline: ZENITH_DEFAULTS.heroHeadline,
     heroSubcopy: ZENITH_DEFAULTS.heroSubcopy,
+    heroBgMediaUrl: null,
   },
   contact: {
     phone: "+254700123456",
@@ -321,6 +322,7 @@ interface DemoHero {
   headline: string | null;
   bg: string | null;
   imageUrl: string | null;
+  bgMediaUrl: string | null;
 }
 
 function heroFor(slug: string, name: string): DemoHero {
@@ -330,6 +332,7 @@ function heroFor(slug: string, name: string): DemoHero {
     headline: h?.headline ?? name,
     bg: h?.bg ?? null,
     imageUrl: null,
+    bgMediaUrl: null,
   };
 }
 

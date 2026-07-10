@@ -31,6 +31,8 @@ export interface BusinessBranding {
   tagline: string | null;
   heroHeadline: string | null;
   heroSubcopy: string | null;
+  /** Full-bleed background image or video URL behind the home hero Stage. */
+  heroBgMediaUrl: string | null;
 }
 
 export interface BusinessBenefit {

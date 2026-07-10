@@ -29,6 +29,7 @@ export default async function HomePage() {
         ctaLabel="Browse the store"
         bg={null}
         imageUrl={null}
+        bgMediaUrl={b.heroBgMediaUrl}
         flagship={products[0]?.name ?? null}
         edit={{ scope: "business" }}
       />

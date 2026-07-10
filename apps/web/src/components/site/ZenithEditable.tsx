@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 // affordances," never present for a real visitor.
 const EDIT_PARAM = "__zenith_edit";
 
-export type EditKind = "text" | "textarea" | "gradient" | "image";
+export type EditKind = "text" | "textarea" | "gradient" | "image" | "media";
 
 export interface EditPayload {
   source: "zenith-storefront";

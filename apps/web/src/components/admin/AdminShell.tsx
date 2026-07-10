@@ -5,7 +5,9 @@ import type { Business } from "@premier/protocol";
 import type { AdminCategoryRow, AdminProduct } from "@/lib/catalog";
 import type { TeamData } from "@/lib/team";
 import type { PulseMetrics } from "@/lib/pulse";
+import type { SetupProgress as SetupProgressData } from "@/lib/setup";
 import { Pulse } from "@/components/admin/Pulse";
+import { SetupProgress } from "@/components/admin/SetupProgress";
 import { ThemeLab } from "@/components/admin/ThemeLab";
 import { AtomicVault } from "@/components/admin/AtomicVault";
 import { TeamManager } from "@/components/admin/TeamManager";
@@ -19,6 +21,7 @@ export function AdminShell({
   products,
   team,
   pulse,
+  setup,
   currentUserId,
   isOwner,
 }: {
@@ -27,6 +30,7 @@ export function AdminShell({
   products: AdminProduct[];
   team: TeamData;
   pulse: PulseMetrics;
+  setup: SetupProgressData;
   currentUserId: string;
   isOwner: boolean;
 }) {
@@ -44,7 +48,7 @@ export function AdminShell({
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100 [font-family:var(--font-geist-sans),sans-serif]">
       <div className="flex min-h-screen">
-        <aside className="flex w-60 shrink-0 flex-col border-r border-zinc-200 bg-white/70 p-5 transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/60">
+        <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-zinc-200 bg-white/70 p-5 transition-colors duration-500 dark:border-zinc-800 dark:bg-zinc-950/60">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-500">
               Zenith
@@ -84,6 +88,7 @@ export function AdminShell({
           </nav>
 
           <div className="mt-auto space-y-4">
+            <SetupProgress data={setup} onNavigate={setView} />
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                 Aura

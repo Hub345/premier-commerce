@@ -38,6 +38,7 @@ export function mapBusiness(row: Row): Business {
       tagline: str(branding.tagline),
       heroHeadline: str(branding.heroHeadline),
       heroSubcopy: str(branding.heroSubcopy),
+      heroBgMediaUrl: str(branding.heroBgMediaUrl),
     },
     contact: {
       phone: str(contact.phone),

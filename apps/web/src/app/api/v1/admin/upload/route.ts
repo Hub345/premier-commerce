@@ -5,11 +5,33 @@ import { getServiceSupabase } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const MAX_BYTES = 8 * 1024 * 1024;
+const EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+};
+
+// Two upload targets. Product photos stay in the tight 8MB image-only bucket;
+// Stage background media (which can be a short video) goes to the larger
+// site-media bucket. The kind comes from the form so one route serves both.
+const TARGETS = {
+  product: {
+    bucket: "product-images",
+    maxBytes: 8 * 1024 * 1024,
+    types: new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]),
+  },
+  background: {
+    bucket: "site-media",
+    maxBytes: 50 * 1024 * 1024,
+    types: new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"]),
+  },
+} as const;
 
 function extensionFor(mimeType: string): string {
-  return { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" }[mimeType] ?? "bin";
+  return EXTENSIONS[mimeType] ?? "bin";
 }
 
 // Uploads one image straight from the admin's computer to Supabase Storage.
@@ -26,13 +48,15 @@ export async function POST(request: Request) {
 
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
+  const kind = form?.get("kind") === "background" ? "background" : "product";
+  const target = TARGETS[kind];
   if (!file || !(file instanceof File)) {
     return NextResponse.json({ error: "no_file" }, { status: 400 });
   }
-  if (!ALLOWED_TYPES.has(file.type)) {
+  if (!target.types.has(file.type)) {
     return NextResponse.json({ error: "unsupported_type" }, { status: 400 });
   }
-  if (file.size > MAX_BYTES) {
+  if (file.size > target.maxBytes) {
     return NextResponse.json({ error: "file_too_large" }, { status: 400 });
   }
 
@@ -41,13 +65,13 @@ export async function POST(request: Request) {
 
   const service = getServiceSupabase();
   const { error } = await service.storage
-    .from("product-images")
+    .from(target.bucket)
     .upload(path, bytes, { contentType: file.type, upsert: false });
 
   if (error) {
     return NextResponse.json({ error: "upload_failed" }, { status: 500 });
   }
 
-  const { data } = service.storage.from("product-images").getPublicUrl(path);
+  const { data } = service.storage.from(target.bucket).getPublicUrl(path);
   return NextResponse.json({ url: data.publicUrl });
 }

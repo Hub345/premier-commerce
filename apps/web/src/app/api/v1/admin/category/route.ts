@@ -12,6 +12,7 @@ const schema = z.object({
   heroHeadline: z.string().max(120).optional(),
   heroBg: z.string().max(400).optional(),
   heroImageUrl: z.string().url().nullable().optional(),
+  heroBgMediaUrl: z.string().url().nullable().optional(),
   featuredRank: z.number().int().min(0).optional(),
 });
 
@@ -38,6 +39,7 @@ export async function PATCH(request: Request) {
   if (fields.heroHeadline !== undefined) update.hero_headline = fields.heroHeadline;
   if (fields.heroBg !== undefined) update.hero_bg = fields.heroBg;
   if (fields.heroImageUrl !== undefined) update.hero_image_url = fields.heroImageUrl;
+  if (fields.heroBgMediaUrl !== undefined) update.hero_bg_media_url = fields.heroBgMediaUrl;
   if (fields.featuredRank !== undefined) update.featured_rank = fields.featuredRank;
 
   const service = getServiceSupabase();

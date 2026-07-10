@@ -45,7 +45,9 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
   "Bizrah Promise" cards; `0009` security hardening (revoked public RPC
   execute on `settle_payment`/`handle_new_user`, hardened `search_path`);
   `0010` `product-images` public Storage bucket for the Atomic Vault; `0011`
-  `business_invites` for the Team owner-invite flow.
+  `business_invites` for the Team owner-invite flow; `0012` `site-media`
+  public bucket (image + video, 50MB) + `categories.hero_bg_media_url` for
+  Stage background media.
 - Tenant middleware (Host → `business_id`, stamped server-side, never client).
 - Supabase server (RLS) + service-role clients; service-role discipline documented.
 
@@ -270,10 +272,12 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
     - **Explicitly deferred** (the larger option the user didn't pick):
       no `layout_json`/block schema, no section drag-and-drop/reordering
       beyond the Grand Gallery list, no alignment/flex-grid engine, no
-      video backgrounds, no undo/redo or snapshot/"Nuclear Reset", no
-      Hostinger-style "N/7 setup" progress checklist or Add-Section
-      template gallery, no rich-text/Slate.js editing (plain text/textarea
-      only, matching what the underlying fields already store).
+      undo/redo or snapshot/"Nuclear Reset", no Add-Section template
+      gallery, no rich-text/Slate.js editing (plain text/textarea only,
+      matching what the underlying fields already store). *(Two items
+      originally listed here — **video/image backgrounds** and the
+      **Hostinger-style setup checklist** — were subsequently built as the
+      "Visual Architect quick wins," see below.)*
     - **Bug caught in code review before testing:** the background-gradient
       pencil was initially wired to render on both business and category
       scope, but `/api/v1/admin/theme` has no `heroBg` field — Apply would
@@ -294,6 +298,52 @@ Status legend: ✅ done & verified · 🟡 partial · ⬜ not started
       synthetic `PointerEvent`s can't fake real browser pointer capture).
       All test data (a throwaway owner account, test field values, test
       rank) was reverted/deleted after verification.
+  - **Visual Architect "quick wins" (added 2026-07-10):** the user re-sent
+    the full "Universe Creator" WYSIWYG brief (JSON `layout_json` canvas,
+    in-canvas drag-and-drop, Slate inline editing, template gallery,
+    undo/redo). Rather than commit to that full rearchitecture (which would
+    rebuild the bespoke SSR storefront as generic blocks — offered as a
+    separate greenlit-first option), the two **no-regret, on-current-
+    architecture** pieces were built and shipped this session:
+    - **Video / image Stage backgrounds** ("drop a video onto the
+      background"). Migration `0012`: a new public **`site-media`** bucket
+      (50MB, image + `video/mp4`/`video/webm`) — separate from the tight 8MB
+      `product-images` bucket — plus a `categories.hero_bg_media_url` column
+      (the home Stage stores its own in `businesses.branding.heroBgMediaUrl`,
+      jsonb, no column). The shared `/api/v1/admin/upload` route now takes a
+      `kind=background` form field routing to `site-media` with video mimes;
+      `theme`/`category` PATCH routes accept `heroBgMediaUrl`. `Stage.tsx`
+      renders a full-bleed `<video autoplay muted loop playsinline>` (or
+      `<img>`) layer with a left-weighted gradient scrim so the dark headline
+      stays readable over any media. A new **`kind: "media"`** in
+      `ZenithEditable`/`EditHud` gives every Stage (home + category) an
+      "Image / Video" drop affordance with upload + "Remove background",
+      reusing the exact click-to-edit bridge already built. **Verified live
+      end-to-end**: recorded a real WebM in-browser (canvas + MediaRecorder),
+      uploaded it through the actual route to `site-media`, PATCHed it onto
+      the home Stage (confirmed the `<video autoplay muted loop>` element +
+      `branding.heroBgMediaUrl` in SQL), then swapped in an 878KB image to
+      confirm the media layer + scrim render (headline stayed legible). All
+      uploads + test account deleted after.
+    - **"Go Live" Setup Progress sidebar** (`components/admin/SetupProgress.tsx`,
+      `lib/setup.ts`) — the persistent Hostinger-style launch checklist at
+      the foot of the (now `sticky`) Command Center sidebar: a progress ring
+      + an expandable 6-step checklist, each step reflecting **real DB
+      state** (headline set, brand colors, hero background present, first
+      product published, categories featured, M-Pesa consumer-key present —
+      *not* hardcoded todos). Incomplete steps that have a control jump
+      straight to the relevant tab. Computed in `getSetupProgress()` from the
+      already-loaded business/categories/products plus one
+      `business_payment_configs` lookup. **Verified live**: Bizrah shows
+      **4/6** (background + M-Pesa incomplete), the checklist marks/greys the
+      right steps, and after setting a hero background the ring ticked to
+      **5/6** in real time — proving it tracks genuine state, not a static list.
+    - **Still deferred** (the big option, needs its own greenlight + design
+      doc): the full `layout_json` generic block renderer, true in-canvas
+      cross-iframe drag-and-drop, Slate rich-text, template gallery, and
+      undo/redo. Also flagged an assumption in the brief: `tenant_configs`
+      doesn't exist here (rejected early as fragmentation) — any layout
+      manifest would live at `businesses.layout_json`.
 - **Product detail** — variant picker, per-variant price, stock, VAT breakdown.
 - **Collections carousel** — reusable scroll-snap carousel (arrows, dots, autoplay).
 - **The Grand Gallery (`/shop`)** — a curated, story-first scroll: one Bento

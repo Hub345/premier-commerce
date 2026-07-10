@@ -60,6 +60,7 @@ export default async function CategoryPage({
         ctaLabel={`Explore ${category.name}`}
         bg={hero?.bg}
         imageUrl={hero?.imageUrl}
+        bgMediaUrl={hero?.bgMediaUrl}
         flagship={products[0]?.name ?? null}
         edit={{ scope: "category", categoryId: category.id }}
       />

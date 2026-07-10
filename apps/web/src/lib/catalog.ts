@@ -119,6 +119,8 @@ export interface CategoryHero {
   headline: string | null;
   bg: string | null;
   imageUrl: string | null;
+  /** Full-bleed background image or video URL behind the category Stage. */
+  bgMediaUrl: string | null;
 }
 
 export interface CategoryListing {
@@ -141,7 +143,7 @@ export async function getCategoryWithProducts(
   const { data: cats } = await supabase
     .from("categories")
     .select(
-      "id, name, slug, parent_id, hero_kicker, hero_headline, hero_bg, hero_image_url",
+      "id, name, slug, parent_id, hero_kicker, hero_headline, hero_bg, hero_image_url, hero_bg_media_url",
     )
     .eq("business_id", businessId);
 
@@ -154,6 +156,7 @@ export async function getCategoryWithProducts(
     hero_headline: string | null;
     hero_bg: string | null;
     hero_image_url: string | null;
+    hero_bg_media_url: string | null;
   }[];
 
   const target = all.find((c) => c.slug === slug) ?? null;
@@ -191,6 +194,7 @@ export async function getCategoryWithProducts(
     headline: target.hero_headline,
     bg: target.hero_bg,
     imageUrl: target.hero_image_url,
+    bgMediaUrl: target.hero_bg_media_url,
   };
 
   const { data } = await supabase
@@ -327,6 +331,9 @@ export async function getFeaturedCategoriesWithProducts(
           headline: c.hero_headline,
           bg: c.hero_bg,
           imageUrl: c.hero_image_url,
+          // The Grand Gallery bento blocks don't render a full-bleed media
+          // layer, so this stays null there — only the category page Stage uses it.
+          bgMediaUrl: null,
         },
         products,
       };

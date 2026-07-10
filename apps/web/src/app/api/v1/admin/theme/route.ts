@@ -16,6 +16,7 @@ const schema = z.object({
   tagline: z.string().max(200).optional(),
   heroHeadline: z.string().max(120).optional(),
   heroSubcopy: z.string().max(400).optional(),
+  heroBgMediaUrl: url.nullable().optional(),
   facebookUrl: url.optional(),
   instagramUrl: url.optional(),
   youtubeUrl: url.optional(),
@@ -56,6 +57,10 @@ export async function PATCH(request: Request) {
   const brandingKeys = ["accent", "primary", "fontFamily", "tagline", "heroHeadline", "heroSubcopy"] as const;
   for (const key of brandingKeys) {
     if (input[key] !== undefined) branding[key] = input[key];
+  }
+  // Background media: empty string (a "remove background" click) stores null.
+  if (input.heroBgMediaUrl !== undefined) {
+    branding.heroBgMediaUrl = input.heroBgMediaUrl === "" ? null : input.heroBgMediaUrl;
   }
   const contactKeys = ["facebookUrl", "instagramUrl", "youtubeUrl", "xUrl"] as const;
   for (const key of contactKeys) {

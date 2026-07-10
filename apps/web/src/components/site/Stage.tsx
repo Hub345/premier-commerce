@@ -19,6 +19,8 @@ export interface StageProps {
   ctaLabel: string;
   bg?: string | null;
   imageUrl?: string | null;
+  /** Full-bleed background image or video behind the whole Stage. */
+  bgMediaUrl?: string | null;
   /** Flagship product name, shown on the fallback plinth. */
   flagship?: string | null;
   /** Present only when rendered inside the admin's live preview. */
@@ -35,11 +37,13 @@ export function Stage({
   ctaLabel,
   bg,
   imageUrl,
+  bgMediaUrl,
   flagship,
   edit,
 }: StageProps) {
   const editing = useZenithEditMode();
   const meta = edit?.categoryId ? { categoryId: edit.categoryId } : undefined;
+  const isVideoBg = bgMediaUrl ? /\.(mp4|webm)$/i.test(bgMediaUrl) : false;
   const initials = (flagship ?? kicker)
     .split(" ")
     .filter(Boolean)
@@ -53,6 +57,28 @@ export function Stage({
       className="relative overflow-hidden border-b border-line"
       style={{ background: bg || DEFAULT_BG }}
     >
+      {/* Full-bleed background media (image or video). A gradient scrim on the
+          text side keeps the dark headline readable over any media. */}
+      {bgMediaUrl ? (
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {isVideoBg ? (
+            <video
+              key={bgMediaUrl}
+              src={bgMediaUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bgMediaUrl} alt="" className="h-full w-full object-cover" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-surface/90 via-surface/45 to-surface/5" />
+        </div>
+      ) : null}
+
       {editing && edit?.scope === "category" ? (
         <div className="absolute right-4 top-4 z-30">
           <ZenithEditable
@@ -70,7 +96,31 @@ export function Stage({
         </div>
       ) : null}
 
-      <div className="mx-auto grid min-h-[58vh] max-w-6xl items-center gap-8 px-6 py-16 lg:grid-cols-2">
+      {/* Background media drop target — available on both the home and every
+          category Stage (unlike the gradient, which is category-only). */}
+      {editing ? (
+        <div className="absolute left-4 top-4 z-30">
+          <ZenithEditable
+            payload={{
+              scope: edit!.scope,
+              field: "heroBgMediaUrl",
+              label: "Background media",
+              kind: "media",
+              value: bgMediaUrl ?? null,
+              meta,
+            }}
+          >
+            <span className="flex h-8 items-center gap-1.5 rounded-full border border-line bg-white/90 px-3 text-[11px] font-medium text-ink shadow-soft">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M23 7l-7 5 7 5V7zM1 5h15v14H1z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Image / Video
+            </span>
+          </ZenithEditable>
+        </div>
+      ) : null}
+
+      <div className="relative z-10 mx-auto grid min-h-[58vh] max-w-6xl items-center gap-8 px-6 py-16 lg:grid-cols-2">
         <motion.div
           key={`${sceneKey}-text`}
           initial={{ opacity: 0, y: 18 }}

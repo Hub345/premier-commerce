@@ -77,11 +77,20 @@ go-live. Phases are gated on review, per the project's working style.
 - **Inline visual editor — done (2026-07-10).** Click-to-edit pencils on the
   live Stage preview (kicker/headline/background/image, home + every
   category) plus a sidebar drag-to-reorder for the Grand Gallery — see
-  `PROGRESS.md` for the full writeup. This was the deliberately-scoped-down
-  half of a much larger "full JSON-driven drag-and-drop builder" request;
-  that larger option (block schema, alignment engine, undo/redo, setup
-  checklist) remains undone and unscoped — would need its own design pass
-  if ever revisited.
+  `PROGRESS.md` for the full writeup.
+- **Visual Architect "quick wins" — done (2026-07-10).** After the full
+  "Universe Creator" WYSIWYG brief was re-sent, the two no-regret pieces
+  that sit on the current architecture shipped: **video/image Stage
+  backgrounds** (new `site-media` bucket, migration `0012`, "drop a video on
+  the hero" via the existing HUD) and the **"Go Live" setup-progress
+  sidebar** (real-state launch checklist). See `PROGRESS.md`.
+- **Full `layout_json` visual builder — still deferred (needs greenlight +
+  design doc).** The generic block renderer, true in-canvas cross-iframe
+  drag-and-drop, Slate rich-text, template gallery, and undo/redo would
+  rebuild the bespoke SSR storefront as generic blocks — a product-shape
+  decision, not a feature. Not started. (Note: the brief's `tenant_configs`
+  table doesn't exist here — rejected early as fragmentation — so any layout
+  manifest would live at `businesses.layout_json`.)
 - **Owner-invite flow — done (2026-07-10).** The manual one-line SQL insert
   (shown on `/admin`'s access-denied screen) is now only needed to bootstrap
   the very first owner of a business (nobody exists yet to invite them).
